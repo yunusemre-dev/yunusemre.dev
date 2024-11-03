@@ -1,5 +1,5 @@
 <div align="center">
-  <a href="https://www.yunusemre.dev" target="_blank"><img alt="Logo" src="https://github.com/YuunsGit/yunusemre.dev/assets/42357900/f9675d96-5364-4f00-b2eb-89a2a42b2bd8" width="200" /></a>
+  <a href="https://www.yunusemre.dev" target="_blank"><img alt="Logo" src="https://github.com/yunusemre-dev/yunusemre.dev/assets/42357900/f9675d96-5364-4f00-b2eb-89a2a42b2bd8" width="200" /></a>
 </div>
 <h1 align="center">
   yunusemre.dev - v3

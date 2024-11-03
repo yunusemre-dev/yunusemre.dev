@@ -7,6 +7,7 @@ import BlogPosts from "@/components/blog-posts";
 import { cn } from "@/lib/utils";
 
 import tanitim from "@/assets/projects/tanitim.png";
+import spoteezer from "@/assets/projects/spoteezer.png";
 import selfshelf from "@/assets/projects/selfshelf.png";
 import emogi from "@/assets/projects/emogi.png";
 import conversions from "@/assets/projects/conversions.png";
@@ -16,6 +17,7 @@ import uavapp from "@/assets/projects/uavapp.png";
 import Arrow from "@/assets/icons/arrow.svg";
 import Chat from "@/components/chat";
 import ButtonGroup from "@/components/button-group";
+import MeLottie from "./me-lottie";
 
 const experience = [
   {
@@ -73,6 +75,7 @@ const experience = [
   },
 ];
 
+// 1440x900
 const projects = [
   {
     title: "Ankara Science University Promo Site",
@@ -89,6 +92,15 @@ const projects = [
       "Next UI",
       "Framer Motion",
     ],
+  },
+  {
+    title: "Spoteezer Web Player",
+    link: "https://spoteezer.yunusemre.dev/",
+    thumbnail: spoteezer,
+    wip: false,
+    description:
+      "Simple web player app built with Next.js. Definitely not related to Spotify or Deezer.",
+    skills: ["TypeScript", "React", "Next.js", "Tailwind", "Zustand", "Howler"],
   },
   {
     title: "Self Shelf Library App",
@@ -117,7 +129,7 @@ const projects = [
   },
   {
     title: "UAV Monitoring API",
-    link: "https://github.com/YuunsGit/uav-backend",
+    link: "https://github.com/yunusemre-dev/uav-backend",
     thumbnail: uavapi,
     wip: false,
     description:
@@ -152,7 +164,7 @@ export default function Main() {
       <section id="about" className="mb-24 scroll-mt-16" aria-label="About me">
         <h2 className="text-2xl font-bold tracking-tight">About Me</h2>
         <p className="mt-5 text-skeptic-900">
-          In 2016, I leapt into the world of software development by developing
+          In 2015, I leapt into the world of software development by developing
           simple Minecraft plugins with Java and building hobby projects with
           Arduino.
         </p>
@@ -166,9 +178,13 @@ export default function Main() {
           serving thousands of users.
         </p>
         <p className="mt-3 text-skeptic-900">
-          I enjoy keeping up with technology and design trends, creating
-          illustrations and animations like the one in this page, and developing
-          simple games.
+          Recently, I&apos;ve been working with some exciting technologies like
+          SvelteKit, GraphQL, PostgreSQL, and NestJS.
+        </p>
+        <p className="mt-3 text-skeptic-900">
+          I enjoy keeping up with technology and design trends, playing tennis,
+          creating illustrations and animations like the one in this page, and
+          developing simple games.
         </p>
         <ButtonGroup />
       </section>
@@ -321,28 +337,35 @@ export default function Main() {
       </section>
 
       <footer className="flex flex-col items-start justify-between gap-y-6 sm:flex-row sm:items-end">
-        <Link
-          href="https://github.com/YuunsGit/yunusemre.dev/"
-          rel="noreferrer noopener"
-          target="_blank"
-          className="group text-skeptic-800 group-hover:text-skeptic-600"
-        >
-          <span>
-            Illustrated, Designed & Built
-            <br />
-            by Yunus Emre Kepenek
-          </span>
-          <Arrow className="my-auto ml-1.5 inline-block size-3 stroke-[3px] transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-        </Link>
-        <Link
-          href="https://v2.yunusemre.dev/"
-          rel="noreferrer noopener"
-          target="_blank"
-          className="group text-skeptic-800 group-hover:text-skeptic-600"
-        >
-          <span>Time Machine</span>
-          <Arrow className="my-auto ml-1.5 inline-block size-3 stroke-[3px] transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-        </Link>
+        <ul className="flex flex-col gap-y-4">
+          <li>
+            <Link
+              href="https://v2.yunusemre.dev/"
+              rel="noreferrer noopener"
+              target="_blank"
+              className="group text-skeptic-800 group-hover:text-skeptic-600"
+            >
+              <span>Time Machine</span>
+              <Arrow className="my-auto ml-1.5 inline-block size-3 stroke-[3px] transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="https://github.com/yunusemre-dev/yunusemre.dev/"
+              rel="noreferrer noopener"
+              target="_blank"
+              className="group text-skeptic-800 group-hover:text-skeptic-600"
+            >
+              <span>
+                Illustrated, Designed & Built
+                <br />
+                by Yunus Emre Kepenek
+              </span>
+              <Arrow className="my-auto ml-1.5 inline-block size-3 stroke-[3px] transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            </Link>
+          </li>
+        </ul>
+        <MeLottie />
       </footer>
     </main>
   );

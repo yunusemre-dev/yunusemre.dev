@@ -1,31 +1,24 @@
 "use client";
 
-import React, { SVGProps, useEffect, useState } from "react";
-import Lottie from "lottie-react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
-
-import MeSvg from "@/assets/me.svg";
-import PPMask from "@/assets/ppmask.png";
-import GoneForGood from "@/assets/gone-for-good.svg";
 
 import GitHub from "@/assets/socials/github.svg";
 import LinkedIn from "@/assets/socials/linkedin.svg";
 import Mail from "@/assets/socials/mail.svg";
-
-import animationData from "@/assets/me.json";
-import increasePokeCounter from "@/app/action";
+import Yunus from "@/assets/yunus.jpg";
+import PPMask from "@/assets/ppmask.png";
 
 const socials: {
   name: string;
-  icon: React.FC<SVGProps<SVGSVGElement>>;
+  icon: React.FC<React.SVGProps<SVGElement>>;
   link: string;
 }[] = [
   {
     name: "GitHub",
     icon: GitHub,
-    link: "https://github.com/YuunsGit",
+    link: "https://github.com/yunusemre-dev",
   },
   {
     name: "LinkedIn",
@@ -39,134 +32,31 @@ const socials: {
   },
 ];
 
-const dialogs = [
-  "Hello!",
-  "Can you stop that please? It tickles...",
-  "Hey, quit poking me!",
-  "Seriously, do you mind?",
-  "Okay, that’s enough now.",
-  "Do you have nothing better to do?",
-  "I’m starting to get annoyed.",
-  "Why are you doing this?",
-  "Please, no more poking.",
-  "Can you find another button to press?",
-  "You're testing my patience!",
-  "I’m not a toy, you know.",
-  "Would you stop if I asked nicely?",
-  "This is not very professional.",
-  "I'm about to lose my cool.",
-  "Do I need to hide?",
-  "Can we move on to something else?",
-  "If I tell you my secret, will you stop?",
-  "Is that what you want?",
-  "Alright, take it and leave me be.",
-  "secret.yunusemre.dev",
-  "How you like that?",
-  "Now, leave me alone.",
-  "You know, this is quite distracting.",
-  "Is there a point to this?",
-  "You’re really persistent, aren’t you?",
-  "I have other things to do!",
-  "Please, have mercy!",
-  "You’re not going to stop, are you?",
-  "I won't run out of things to say.",
-  "This is the last warning!",
-  "You’re about to see my angry side.",
-  "I’m begging you, please stop.",
-  "Alright, I give up. You win.",
-  "Just keep poking...",
-  "You can't do this forever you know.",
-  "Are you having fun?",
-  "..",
-  "...",
-  "I can do this all day.",
-  ".....",
-  "......",
-  "OKAY, you win. I give up.",
-];
-
-const CLICKS_TO_DIALOG = 6;
-
 export default function Hero() {
-  const [loaded, setLoaded] = useState(false);
-  const [clicks, setClicks] = useState(0);
-  const [dialog, setDialog] = useState(0);
-  const [gone, setGone] = useState(false);
-
   useEffect(() => {
     console.log(
       "Hey there! Looks like you found my secret. There you go, you deserve it: https://secret.yunusemre.dev/",
     );
   }, []);
 
-  useEffect(() => {
-    if (localStorage.getItem("angryYunus") === "true") setGone(true);
-  }, []);
-
-  useEffect(() => {
-    if (clicks >= CLICKS_TO_DIALOG && !gone) {
-      setDialog((prev) => prev + 1);
-      setTimeout(() => {
-        if (dialog === dialogs.length - 2) {
-          setGone(true);
-          localStorage.setItem("angryYunus", "true");
-          return;
-        }
-        setClicks(0);
-      }, 2000);
-    }
-  }, [clicks]);
-
   return (
     <header className="flex flex-shrink-0 flex-col justify-between pb-0 pt-10 md:pt-16 lg:sticky lg:top-0 lg:max-h-screen lg:pb-16">
       <section>
-        <div className="relative size-fit">
-          <p
-            className={cn(
-              "absolute left-1/2 top-0 -z-10 -translate-x-1/2 scale-75 whitespace-nowrap text-center text-skeptic-800 opacity-0 transition-all",
-              clicks >= CLICKS_TO_DIALOG && "-top-8 scale-100 opacity-100",
-              gone && "!opacity-0",
-            )}
-            aria-hidden="true"
-          >
-            {dialogs[dialog]}
-          </p>
-          <figure
-            className="size-60 bg-skeptic-200 sm:size-72"
-            style={{
-              maskImage: `url(${PPMask.src})`,
-              maskSize: "contain",
-              maskRepeat: "no-repeat",
-            }}
-          >
-            {loaded || (
-              <MeSvg className="me-svg absolute size-60 translate-y-0.5 sm:size-72" />
-            )}
-            <Lottie
-              className={cn(
-                "change-bg z-10 origin-bottom translate-y-0.5 cursor-pointer select-none overflow-hidden transition-all",
-                gone
-                  ? "translate-y-full rotate-2 duration-700"
-                  : "hover:translate-y-1 active:translate-y-1.5 active:rotate-1",
-              )}
-              animationData={animationData}
-              onLoadedImages={() => setLoaded(true)}
-              onClick={() => {
-                if (clicks < CLICKS_TO_DIALOG && !gone) {
-                  setClicks((prev) => prev + 1);
-                  increasePokeCounter();
-                }
-              }}
-              loop={true}
-            />
-            {gone && (
-              <GoneForGood
-                aria-hidden="true"
-                className="absolute bottom-7 left-0 right-0 -z-10 mx-auto size-24 sm:size-28"
-              />
-            )}
-          </figure>
-        </div>
+        <Image
+          src={Yunus}
+          width={288}
+          height={288}
+          priority
+          quality={100}
+          placeholder="blur"
+          alt="Yunus Emre Kepenek"
+          className="z-10 size-60 sm:size-72"
+          style={{
+            maskImage: `url(${PPMask.src})`,
+            maskSize: "contain",
+            maskRepeat: "no-repeat",
+          }}
+        />
         <div className="mt-10 text-skeptic-800">
           <h1 className="text-3xl font-bold tracking-tight">
             Yunus Emre Kepenek
@@ -196,7 +86,12 @@ export default function Hero() {
       <ul className="mt-6 flex gap-4" aria-label="Social media links">
         {socials.map((social, index) => (
           <li key={index}>
-            <Link href={social.link} target="_blank" rel="noreferrer noopener" aria-label={`Follow on ${social.name}`}>
+            <Link
+              href={social.link}
+              target="_blank"
+              rel="noreferrer noopener"
+              aria-label={`Follow on ${social.name}`}
+            >
               <social.icon className="size-6 fill-skeptic-800 hover:fill-skeptic-600" />
             </Link>
           </li>
