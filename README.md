@@ -5,7 +5,7 @@
   yunusemre.dev - v3
 </h1>
 <p align="center">
-  Well optimized second version of <a href="https://www.yunusemre.dev" target="_blank">yunusemre.dev</a> built with <a href="https://nextjs.org/" target="_blank">Next.js</a> and hosted with <a href="https://vercel.com/" target="_blank">Vercel</a>
+  Well optimized third version of <a href="https://www.yunusemre.dev" target="_blank">yunusemre.dev</a> built with <a href="https://nextjs.org/" target="_blank">Next.js</a> and hosted with <a href="https://vercel.com/" target="_blank">Vercel</a>
 </p>
 <br/>
 <h1 align="center">
