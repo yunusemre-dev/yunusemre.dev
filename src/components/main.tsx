@@ -61,7 +61,7 @@ const experience = [
     ],
   },
   {
-    title: "OOP & Java Mentor",
+    title: "Undergraduate Research Assistant",
     company: "Ankara Science University",
     link: "https://ankarabilim.edu.tr/",
     location: "Ankara, Türkiye",
@@ -118,24 +118,24 @@ const projects = [
       "Prisma",
     ],
   },
-  {
-    title: "UAV Monitoring Dashboard",
-    link: "https://uav.yunusemre.dev/",
-    thumbnail: uavapp,
-    wip: false,
-    description:
-      "UAV monitoring application that allows users to track and monitor UAVs. Utilizes the UAV Monitoring API to assign tasks to UAVs.",
-    skills: ["TypeScript", "Vue", "Tailwind", "TanStack"],
-  },
-  {
-    title: "UAV Monitoring API",
-    link: "https://github.com/yunusemre-dev/uav-backend",
-    thumbnail: uavapi,
-    wip: false,
-    description:
-      "UAV monitoring API that allows users to assign tasks to UAVs and execute them. Designed to be used with the UAV Monitoring Dashboard.",
-    skills: ["Python", "Flask", "SQLite", "SQLAlchemy", "MinIO"],
-  },
+  // {
+  //   title: "UAV Monitoring Dashboard",
+  //   link: "https://uav.yunusemre.dev/",
+  //   thumbnail: uavapp,
+  //   wip: false,
+  //   description:
+  //     "UAV monitoring application that allows users to track and monitor UAVs. Utilizes the UAV Monitoring API to assign tasks to UAVs.",
+  //   skills: ["TypeScript", "Vue", "Tailwind", "TanStack"],
+  // },
+  // {
+  //   title: "UAV Monitoring API",
+  //   link: "https://github.com/yunusemre-dev/uav-backend",
+  //   thumbnail: uavapi,
+  //   wip: false,
+  //   description:
+  //     "UAV monitoring API that allows users to assign tasks to UAVs and execute them. Designed to be used with the UAV Monitoring Dashboard.",
+  //   skills: ["Python", "Flask", "SQLite", "SQLAlchemy", "MinIO"],
+  // },
   {
     title: "Emogi Emotion Sharing App",
     link: "https://emogi.yunusemre.dev/",
