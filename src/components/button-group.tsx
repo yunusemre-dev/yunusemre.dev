@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 
 export default function ButtonGroup() {
@@ -23,11 +24,11 @@ export default function ButtonGroup() {
       <Button
         asChild
         size="sm"
-        variant="outline"
-        className="group text-skeptic-700 hover:bg-slate-100 hover:text-skeptic-800"
+        className="bg-skeptic-500 text-white hover:bg-skeptic-400"
       >
         <Link href="/resume.pdf" prefetch={false} target="_blank">
           Resume
+          <ArrowUpRight className="ml-2 size-4" />
         </Link>
       </Button>
     </div>
