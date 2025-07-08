@@ -77,6 +77,11 @@ Yunus Emre Kepenek, based in İzmir, Türkiye.
 
 ### Projects:
 
+- THREE Insurance Website
+
+  - Led the team of developers to develop the website of THREE Insurance by Berkshire Hathaway. Built with Astro, TypeScript, and Tailwind.
+  - Link: https://threeinsurance.com/
+
 - Ankara Science University Promo. Website
 
   - Promotion website that my university requested from me. Built with Next.js, TypeScript, and Tailwind.
@@ -94,17 +99,6 @@ Yunus Emre Kepenek, based in İzmir, Türkiye.
   - Link: https://ss.yunusemre.dev/
   - Source code: https://github.com/yunusemre-dev/selfshelf/
 
-- UAV Monitoring Dashboard
-
-  - UAV monitoring application that allows users to track and monitor UAVs. Utilizes the UAV Monitoring API to assign tasks to UAVs.
-  - Link: https://uav.yunusemre.dev/
-  - Source code: https://github.com/yunusemre-dev/uav-dashboard/
-
-- UAV Monitoring API
-
-  - UAV monitoring API that allows users to assign tasks to UAVs and execute them. Designed to be used with the UAV Monitoring Dashboard.
-  - Link: https://github.com/yunusemre-dev/uav-backend
-
 - Emogi
 
   - Little app built with TypeScript, Next.js, React and Redis.
@@ -116,11 +110,6 @@ Yunus Emre Kepenek, based in İzmir, Türkiye.
   - PDF editing app built with JavaScript, React and Tailwind.
   - Link: https://conversions.yunusemre.dev/
   - Source code: https://github.com/yunusemre-dev/conversions/
-
-### Organizations:
-
-- Founder & Web Dev Mentor, Sinbad DigiBox
-  - 2022 - 2024
 
 ### Languages:
 

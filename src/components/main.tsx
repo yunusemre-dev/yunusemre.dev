@@ -1,22 +1,18 @@
-import React from "react";
-
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 
 import BlogPosts from "@/components/blog-posts";
 import { cn } from "@/lib/utils";
 
-import tanitim from "@/assets/projects/tanitim.png";
-import spoteezer from "@/assets/projects/spoteezer.png";
-import selfshelf from "@/assets/projects/selfshelf.png";
-import emogi from "@/assets/projects/emogi.png";
 import conversions from "@/assets/projects/conversions.png";
-import uavapi from "@/assets/projects/uavapi.png";
-import uavapp from "@/assets/projects/uavapp.png";
+import emogi from "@/assets/projects/emogi.png";
+import selfshelf from "@/assets/projects/selfshelf.png";
+import spoteezer from "@/assets/projects/spoteezer.png";
+import tanitim from "@/assets/projects/tanitim.png";
 
 import Arrow from "@/assets/icons/arrow.svg";
-import Chat from "@/components/chat";
 import ButtonGroup from "@/components/button-group";
+import Chat from "@/components/chat";
 import MeLottie from "./me-lottie";
 
 const experience = [
@@ -171,7 +167,7 @@ export default function Main() {
         <p className="mt-3 text-skeptic-900">
           Now, as a software engineering graduate, I&apos;ve been developing
           user-friendly websites and full-stack web applications for more than{" "}
-          <strong className="font-bold"> 2 years</strong> using modern
+          <strong className="font-bold"> 3 years</strong> using modern
           technologies. I contributed to the development and deployment of{" "}
           <strong className="font-bold">high-end insurance portals</strong> and{" "}
           <strong className="font-bold">IaaS-PaaS cloud applications</strong>{" "}
