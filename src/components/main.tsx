@@ -16,14 +16,34 @@ import Chat from "@/components/chat";
 import MeLottie from "./me-lottie";
 
 const experience = [
+ {
+    title: "Software Engineer",
+    company: "Radity",
+    link: "https://sagalegal.io/",
+    location: "Amsterdam, Netherlands",
+    date: {
+      start: "Nov 2025",
+      end: "Present",
+    },
+    description:
+      "Contribute to the AI-driven development of Saga, a lawyer-centric AI, using modern technologies such as React, Next.js, Redux, JavaScript, TypeScript, Tailwind CSS, Figma, and more.",
+    skills: [
+      "JavaScript",
+      "TypeScript",
+      "React",
+      "Next.js",
+      "Tailwind CSS",
+      "Figma",
+    ],
+  },
   {
-    title: "Full Stack Engineer",
+    title: "Software Engineer",
     company: "Radity",
     link: "https://radity.com/",
     location: "Zürich, Switzerland",
     date: {
       start: "Sep 2023",
-      end: "Present",
+      end: "Nov 2025",
     },
     description:
       "Builds, styles, and ships high-quality insurance portals for a diverse array of clients including THREE Insurance by Berkshire Hathaway. Works alongside product and project managers, designers, and other engineers on an agile cadence.",
@@ -37,7 +57,7 @@ const experience = [
     ],
   },
   {
-    title: "Full Stack Engineer",
+    title: "Software Engineer",
     company: "DT Cloud",
     link: "https://dtcloudnow.com/",
     location: "Antalya, Türkiye",
