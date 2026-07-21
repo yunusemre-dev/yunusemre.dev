@@ -365,7 +365,10 @@ def test_spa_and_seed_gallery():
         )
         assert all(photo["thumbnail_url"].endswith(".thumb.webp") for photo in photos)
         assert (Path(__file__).parents[1] / "static" / "avatar-96.webp").stat().st_size < 10_000
-        assert (Path(__file__).parents[1] / "static" / "og-image.jpg").stat().st_size < 100_000
+        assert 'property="og:image"' not in home.text
+        assert 'name="twitter:image"' not in home.text
+        assert 'name="twitter:card" content="summary"' in home.text
+        assert not (Path(__file__).parents[1] / "static" / "og-image.jpg").exists()
 
 
 def test_photo_upload_generates_tiny_blurred_placeholder():
