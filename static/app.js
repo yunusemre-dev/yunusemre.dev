@@ -497,7 +497,7 @@ async function renderChat() {
 
   setPage(
     `${siteHeader("/", {
-      eyebrow: "A small corner of the internet",
+      eyebrow: "A direct line to Yunus",
       title: "Ask me anything.",
       description: "About my work, my past or anything.",
       id: "chat-title",
@@ -507,7 +507,7 @@ async function renderChat() {
         <div class="chat-topline">
           <span id="chat-status" class="chat-status"><i></i>You’re talking to Yunus’s AI</span>
           <div class="chat-topline-actions">
-            <span class="private-note">private session</span>
+            <span class="private-note">private session, only you and Yunus</span>
             <button class="new-chat-button" id="new-chat-button" type="button" title="Clear this chat and start fresh" ${hasConversationMessages ? "" : "hidden"}>${icons.newChat}<span>New chat</span></button>
           </div>
         </div>
