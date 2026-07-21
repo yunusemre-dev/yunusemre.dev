@@ -328,6 +328,9 @@ def test_spa_and_seed_gallery():
         assert "lightboxContent.style.width" in app_script
         assert "data-photo-width" in app_script
         assert "await fullImage.decode()" in app_script
+        assert "setChatStatus(initialTakeover, { notify: false })" in app_script
+        assert "notify && justConnected" in app_script
+        assert "notify && justDisconnected" in app_script
         assert 'message.role !== "presence"' in app_script
         assert 'newChatButton.hidden = false' in app_script
         assert 'data-prompt="Who are you?"' not in app_script

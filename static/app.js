@@ -380,7 +380,7 @@ function setOperatorTyping(typing) {
   indicator.hidden = !typing;
 }
 
-function setChatStatus(takeover) {
+function setChatStatus(takeover, { notify = true } = {}) {
   const justConnected = takeover && !state.takeover;
   const justDisconnected = !takeover && state.takeover;
   state.takeover = takeover;
@@ -389,10 +389,10 @@ function setChatStatus(takeover) {
   status.classList.toggle("is-human", takeover);
   status.innerHTML = `<i></i>${takeover ? "Yunus is here" : "You’re talking to Yunus’s AI"}`;
   if (!takeover) setOperatorTyping(false);
-  if (justConnected) {
+  if (notify && justConnected) {
     showToast("Yunus connected to the chat.");
   }
-  if (justDisconnected) {
+  if (notify && justDisconnected) {
     showToast("Yunus disconnected from the chat.");
   }
 }
@@ -462,7 +462,6 @@ async function pollChat() {
 async function renderChat() {
   const chatGeneration = ++state.chatGeneration;
   state.lastMessageId = 0;
-  state.takeover = false;
   let initialMessages = [];
   let initialTakeover = false;
   let initialOperatorTyping = false;
@@ -610,7 +609,7 @@ async function renderChat() {
     }
   }
 
-  setChatStatus(initialTakeover);
+  setChatStatus(initialTakeover, { notify: false });
   setOperatorTyping(initialTakeover && initialOperatorTyping);
   messages.scrollTop = messages.scrollHeight;
   prepareSubmissionBotCheck();
