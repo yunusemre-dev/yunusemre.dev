@@ -284,6 +284,22 @@ def test_spa_and_seed_gallery():
         )
         assert apex.status_code == 308
         assert apex.headers["location"] == "https://www.yunusemre.dev/past?source=apex"
+        insecure_www = client.get(
+            "/dump?source=http",
+            headers={"host": "www.yunusemre.dev"},
+            follow_redirects=False,
+        )
+        assert insecure_www.status_code == 308
+        assert insecure_www.headers["location"] == (
+            "https://www.yunusemre.dev/dump?source=http"
+        )
+        secure_www = client.get(
+            "/", headers={"host": "www.yunusemre.dev", "x-forwarded-proto": "https"}
+        )
+        assert secure_www.status_code == 200
+        assert secure_www.headers["strict-transport-security"].startswith(
+            "max-age=31536000"
+        )
         past = client.get("/past")
         assert past.status_code == 200
         assert "Past — Yunus Emre Kepenek</title>" in past.text

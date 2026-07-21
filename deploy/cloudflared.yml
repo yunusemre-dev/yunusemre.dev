@@ -1,0 +1,10 @@
+tunnel: 60881fc2-ebc7-406c-99d4-8ecb160b05a8
+credentials-file: /etc/cloudflared/60881fc2-ebc7-406c-99d4-8ecb160b05a8.json
+no-autoupdate: true
+
+ingress:
+  - hostname: www.yunusemre.dev
+    service: http://127.0.0.1:8000
+  - hostname: yunusemre.dev
+    service: http://127.0.0.1:8000
+  - service: http_status:404

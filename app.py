@@ -345,7 +345,10 @@ app.mount("/media", StaticFiles(directory=UPLOAD_DIR), name="media")
 async def security_headers(request: Request, call_next):
     path = request.url.path
     host = (request.url.hostname or "").lower()
-    if host == "yunusemre.dev":
+    forwarded_scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
+    scheme = forwarded_scheme.split(",", 1)[0].strip().lower()
+    production_hosts = {"yunusemre.dev", "www.yunusemre.dev"}
+    if host in production_hosts and (host == "yunusemre.dev" or scheme != "https"):
         target = request.url.replace(scheme="https", netloc="www.yunusemre.dev")
         response = RedirectResponse(str(target), status_code=308)
     else:
@@ -363,6 +366,10 @@ async def security_headers(request: Request, call_next):
         "connect-src 'self'; "
         "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
     )
+    if host in production_hosts:
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=31536000; includeSubDomains; preload"
+        )
     if host.endswith(".boxd.sh") or path == "/studio" or path.startswith("/api/"):
         response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
     if path.startswith("/media/") or (

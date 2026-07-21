@@ -31,3 +31,7 @@ Profile grounding lives in `data/about.md`. Images are managed through the studi
 ```bash
 .venv/bin/pytest -q
 ```
+
+## Production
+
+The app runs as `yunus-portfolio.service` on Boxd. Cloudflare Tunnel terminates the custom-domain connection and forwards `yunusemre.dev` and `www.yunusemre.dev` to Uvicorn on port `8000`; its non-secret ingress configuration lives in `deploy/cloudflared.yml`.
