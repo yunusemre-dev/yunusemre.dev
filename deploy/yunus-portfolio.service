@@ -1,0 +1,19 @@
+[Unit]
+Description=Yunus Emre personal website
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=boxd
+Group=boxd
+WorkingDirectory=/home/boxd/portfolio
+EnvironmentFile=/home/boxd/portfolio/.env
+ExecStart=/home/boxd/portfolio/.venv/bin/uvicorn app:app --host 0.0.0.0 --port 8000 --workers 1 --proxy-headers --forwarded-allow-ips=*
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
