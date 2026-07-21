@@ -277,6 +277,13 @@ def test_spa_and_seed_gallery():
         assert "viewport-fit=contain" in home.text
         assert 'name="robots" content="index, follow, max-image-preview:large"' in home.text
         assert 'type="application/ld+json"' in home.text
+        apex = client.get(
+            "/past?source=apex",
+            headers={"host": "yunusemre.dev"},
+            follow_redirects=False,
+        )
+        assert apex.status_code == 308
+        assert apex.headers["location"] == "https://www.yunusemre.dev/past?source=apex"
         past = client.get("/past")
         assert past.status_code == 200
         assert "Past — Yunus Emre Kepenek</title>" in past.text

@@ -22,7 +22,13 @@ from typing import AsyncIterator, Literal, Optional
 import httpx
 from fastapi import Cookie, Depends, FastAPI, File, Form, HTTPException, Request, Response, UploadFile
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse, StreamingResponse
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    PlainTextResponse,
+    RedirectResponse,
+    StreamingResponse,
+)
 from fastapi.staticfiles import StaticFiles
 from PIL import Image, ImageFilter, ImageOps, UnidentifiedImageError
 from pydantic import BaseModel, Field
@@ -337,9 +343,13 @@ app.mount("/media", StaticFiles(directory=UPLOAD_DIR), name="media")
 
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
-    response = await call_next(request)
     path = request.url.path
     host = (request.url.hostname or "").lower()
+    if host == "yunusemre.dev":
+        target = request.url.replace(scheme="https", netloc="www.yunusemre.dev")
+        response = RedirectResponse(str(target), status_code=308)
+    else:
+        response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
