@@ -331,6 +331,9 @@ def test_spa_and_seed_gallery():
         assert "setChatStatus(initialTakeover, { notify: false })" in app_script
         assert "notify && justConnected" in app_script
         assert "notify && justDisconnected" in app_script
+        assert 'if (!conversationId || document.visibilityState === "hidden")' not in app_script
+        assert "await heartbeatOperatorPresence();" in app_script
+        assert "window.addEventListener(\"pagehide\", handlePageHide)" in app_script
         assert 'message.role !== "presence"' in app_script
         assert 'newChatButton.hidden = false' in app_script
         assert 'data-prompt="Who are you?"' not in app_script

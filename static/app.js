@@ -1297,7 +1297,7 @@ async function releaseOperatorPresence(useBeacon = false) {
 }
 
 async function joinOperatorPresence(conversationId) {
-  if (!conversationId || document.visibilityState === "hidden") return null;
+  if (!conversationId) return null;
   if (
     state.operatorPresenceConversation &&
     state.operatorPresenceConversation !== conversationId
@@ -1311,7 +1311,7 @@ async function joinOperatorPresence(conversationId) {
 
 async function heartbeatOperatorPresence() {
   const conversationId = state.operatorPresenceConversation;
-  if (!conversationId || document.visibilityState === "hidden") return;
+  if (!conversationId) return;
   const data = await updateOperatorPresence(conversationId, "heartbeat");
   if (!data?.present) await joinOperatorPresence(conversationId);
 }
@@ -1411,9 +1411,9 @@ async function renderStudioChats() {
   async function handleVisibilityChange() {
     if (document.visibilityState === "hidden") {
       state.operatorTypingCleanup?.();
-      await releaseOperatorPresence(true);
       return;
     }
+    await heartbeatOperatorPresence();
     if (state.operatorSelected) {
       await refreshOperatorConversation();
     }
