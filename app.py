@@ -367,9 +367,7 @@ async def security_headers(request: Request, call_next):
         "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
     )
     if host in production_hosts:
-        response.headers["Strict-Transport-Security"] = (
-            "max-age=31536000; includeSubDomains; preload"
-        )
+        response.headers["Strict-Transport-Security"] = "max-age=31536000"
     if host.endswith(".boxd.sh") or path == "/studio" or path.startswith("/api/"):
         response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
     if path.startswith("/media/") or (
