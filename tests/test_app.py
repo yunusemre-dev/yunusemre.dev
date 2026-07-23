@@ -345,6 +345,8 @@ def test_spa_and_seed_gallery():
         assert "Yunus is typing" in app_script
         assert "Visitor is typing" in app_script
         assert "updateVisitorTyping" in app_script
+        assert "redirectPageTouch" not in app_script
+        assert 'if (window.matchMedia("(max-width: 620px)").matches) return;' in app_script
         assert 'fill="currentColor"' in app_script
         assert "/typing" in app_script
         assert "thumbnail_url || photo.url" in app_script

@@ -541,7 +541,6 @@ async function renderChat() {
   let botCheckReady = false;
   let botCheckRetry = null;
   let activeRequest = null;
-  let touchY = null;
   let visitorTypingActive = false;
   let lastVisitorTypingSignal = 0;
   let visitorTypingIdleTimer = null;
@@ -616,6 +615,7 @@ async function renderChat() {
   if (loadError) showToast(loadError.message);
 
   function redirectPageWheel(event) {
+    if (window.matchMedia("(max-width: 620px)").matches) return;
     if (event.ctrlKey || Math.abs(event.deltaY) <= Math.abs(event.deltaX))
       return;
     if (event.target instanceof Element && event.target.closest("#messages"))
@@ -624,35 +624,7 @@ async function renderChat() {
     event.preventDefault();
   }
 
-  function startPageTouch(event) {
-    const target = event.target instanceof Element ? event.target : null;
-    if (
-      event.touches.length !== 1 ||
-      target?.closest("#messages, textarea, input")
-    ) {
-      touchY = null;
-      return;
-    }
-    touchY = event.touches[0].clientY;
-  }
-
-  function redirectPageTouch(event) {
-    if (touchY === null || event.touches.length !== 1) return;
-    const nextY = event.touches[0].clientY;
-    messages.scrollTop += touchY - nextY;
-    touchY = nextY;
-    event.preventDefault();
-  }
-
-  function endPageTouch() {
-    touchY = null;
-  }
-
   window.addEventListener("wheel", redirectPageWheel, { passive: false });
-  window.addEventListener("touchstart", startPageTouch, { passive: true });
-  window.addEventListener("touchmove", redirectPageTouch, { passive: false });
-  window.addEventListener("touchend", endPageTouch, { passive: true });
-  window.addEventListener("touchcancel", endPageTouch, { passive: true });
 
   function resizeInput() {
     input.style.height = "auto";
@@ -786,10 +758,6 @@ async function renderChat() {
     window.clearTimeout(botCheckRetry);
     stopVisitorTyping().catch(() => {});
     window.removeEventListener("wheel", redirectPageWheel);
-    window.removeEventListener("touchstart", startPageTouch);
-    window.removeEventListener("touchmove", redirectPageTouch);
-    window.removeEventListener("touchend", endPageTouch);
-    window.removeEventListener("touchcancel", endPageTouch);
   };
 }
 
