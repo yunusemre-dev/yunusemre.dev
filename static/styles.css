@@ -243,7 +243,9 @@ svg {
 }
 
 body.is-chat-route {
+  height: 100vh;
   height: 100svh;
+  height: var(--app-viewport-height, 100svh);
   overflow: hidden;
   overscroll-behavior: none;
 }

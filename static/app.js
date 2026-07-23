@@ -7,6 +7,43 @@ const galleryVisitorId =
   localStorage.getItem("yunus-gallery-visitor") || crypto.randomUUID();
 localStorage.setItem("yunus-gallery-visitor", galleryVisitorId);
 
+let viewportSyncFrame = null;
+
+function syncAppViewportHeight() {
+  const viewport = window.visualViewport;
+  // Some mobile browsers overlay their bottom toolbar without updating vh units.
+  const visibleViewportBottom = viewport
+    ? viewport.height + viewport.offsetTop
+    : window.innerHeight;
+  document.documentElement.style.setProperty(
+    "--app-viewport-height",
+    `${Math.floor(visibleViewportBottom)}px`,
+  );
+}
+
+function scheduleAppViewportSync() {
+  if (viewportSyncFrame !== null) {
+    window.cancelAnimationFrame(viewportSyncFrame);
+  }
+  viewportSyncFrame = window.requestAnimationFrame(() => {
+    viewportSyncFrame = null;
+    syncAppViewportHeight();
+  });
+}
+
+syncAppViewportHeight();
+window.addEventListener("resize", scheduleAppViewportSync, { passive: true });
+window.addEventListener("orientationchange", scheduleAppViewportSync, {
+  passive: true,
+});
+window.addEventListener("pageshow", scheduleAppViewportSync, { passive: true });
+window.visualViewport?.addEventListener("resize", scheduleAppViewportSync, {
+  passive: true,
+});
+window.visualViewport?.addEventListener("scroll", scheduleAppViewportSync, {
+  passive: true,
+});
+
 const state = {
   cleanup: null,
   conversationId: localStorage.getItem("yunus-conversation"),

@@ -352,6 +352,10 @@ def test_spa_and_seed_gallery():
         assert "env(safe-area-max-inset-bottom, 0px)" in styles
         assert "44px," in styles
         assert "body.is-chat-route .chat-page" in styles
+        assert "height: var(--app-viewport-height, 100svh)" in styles
+        assert "window.visualViewport" in app_script
+        assert "viewport.height + viewport.offsetTop" in app_script
+        assert '"--app-viewport-height"' in app_script
         assert "NOV 2025 — PRESENT" in app_script
         assert "JAN 2023 — SEP 2023" in app_script
         assert '<a href="/static/yunus-emre-kepenek-resume.pdf" target="_blank"' in app_script
