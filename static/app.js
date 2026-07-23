@@ -413,8 +413,8 @@ function scrollChatToMessage(messages, element, behavior = "auto") {
     if (mobileChatScrollFrame) cancelAnimationFrame(mobileChatScrollFrame);
     mobileChatScrollFrame = requestAnimationFrame(() => {
       mobileChatScrollFrame = null;
-      if (!element?.isConnected) return;
-      element.scrollIntoView({ behavior, block: "end" });
+      if (!messages?.isConnected || !element?.isConnected) return;
+      messages.scrollTo({ top: messages.scrollHeight, behavior });
     });
     return;
   }

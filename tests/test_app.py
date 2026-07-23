@@ -321,15 +321,15 @@ def test_spa_and_seed_gallery():
         service_worker = client.get("/sw.js")
         assert service_worker.status_code == 200
         assert service_worker.headers["service-worker-allowed"] == "/"
-        versioned_script = client.get("/assets/20260724-mobile-flow/app.js")
+        versioned_script = client.get("/assets/20260724-mobile-chat-cap/app.js")
         assert versioned_script.status_code == 200
         assert versioned_script.headers["cache-control"].endswith("immutable")
         assert (
-            client.get("/assets/20260724-mobile-flow/unknown.js").status_code
+            client.get("/assets/20260724-mobile-chat-cap/unknown.js").status_code
             == 404
         )
-        assert '/assets/20260724-mobile-flow/styles.css' in home.text
-        assert '/assets/20260724-mobile-flow/app.js' in home.text
+        assert '/assets/20260724-mobile-chat-cap/styles.css' in home.text
+        assert '/assets/20260724-mobile-chat-cap/app.js' in home.text
         app_script = client.get("/static/app.js").text
         assert "photo-skeleton" not in app_script
         assert "photo-placeholder" in app_script
@@ -356,7 +356,7 @@ def test_spa_and_seed_gallery():
         assert "updateVisitorTyping" in app_script
         assert "redirectPageTouch" not in app_script
         assert 'if (window.matchMedia("(max-width: 620px)").matches) return;' in app_script
-        assert 'element.scrollIntoView({ behavior, block: "end" })' in app_script
+        assert "messages.scrollTo({ top: messages.scrollHeight, behavior })" in app_script
         assert 'fill="currentColor"' in app_script
         assert "/typing" in app_script
         assert "thumbnail_url || photo.url" in app_script
@@ -366,7 +366,9 @@ def test_spa_and_seed_gallery():
         assert "body.is-chat-route .chat-page" in styles
         assert "body.is-chat-route .messages" in styles
         assert "overflow-y: auto" in styles
+        assert "height: clamp(280px, 45svh, 400px)" in styles
         assert ".chat-composer textarea {\n    font-size: 16px;" in styles
+        assert "-webkit-appearance: none" in styles
         assert "NOV 2025 — PRESENT" in app_script
         assert "JAN 2023 — SEP 2023" in app_script
         assert '<a href="/static/yunus-emre-kepenek-resume.pdf" target="_blank"' in app_script

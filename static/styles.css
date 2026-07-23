@@ -642,14 +642,20 @@ body.is-chat-route .chat-shell {
 
 .send-button,
 .operator-composer button {
-  display: grid;
+  display: flex;
   flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
   width: 44px;
   height: 44px;
-  place-items: center;
+  margin: 0;
+  padding: 0;
   border-radius: 50%;
+  appearance: none;
+  -webkit-appearance: none;
   color: white;
   background: var(--green);
+  line-height: 0;
   cursor: pointer;
   transition:
     background 160ms ease,
@@ -670,8 +676,10 @@ body.is-chat-route .chat-shell {
 }
 .send-button svg,
 .operator-composer button svg {
+  flex: 0 0 auto;
   width: 19px;
   height: 19px;
+  margin: 0;
 }
 
 .past-page {
@@ -1984,9 +1992,10 @@ body.is-chat-route .chat-shell {
     overflow: visible;
   }
   body.is-chat-route .messages {
-    min-height: 280px;
-    overflow: visible;
-    overscroll-behavior: auto;
+    height: clamp(280px, 45svh, 400px);
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
   .shell {
     width: calc(100% - 24px);
