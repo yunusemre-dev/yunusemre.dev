@@ -13,6 +13,19 @@
   --radius: 24px;
   --radius-lg: 38px;
   --shadow-soft: 0 24px 80px rgba(18, 28, 22, 0.06);
+  --browser-bottom-reserve: 0px;
+  --chat-safe-area-bottom: max(
+    env(safe-area-inset-bottom, 0px),
+    env(safe-area-max-inset-bottom, 0px)
+  );
+}
+
+html.is-ios-chrome:not(.is-virtual-keyboard-open) {
+  --browser-bottom-reserve: 84px;
+}
+
+html.is-virtual-keyboard-open {
+  --chat-safe-area-bottom: 0px;
 }
 
 * {
@@ -38,6 +51,11 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background: var(--paper);
+}
+
+body:not(.is-chat-route) {
+  padding-inline: env(safe-area-inset-left, 0px)
+    env(safe-area-inset-right, 0px);
 }
 
 button,
@@ -242,6 +260,7 @@ svg {
   padding: 12px 0 96px;
 }
 
+html.is-chat-route,
 body.is-chat-route {
   height: 100vh;
   height: 100svh;
@@ -261,8 +280,8 @@ body.is-chat-route .chat-page {
   min-height: 0;
   padding-bottom: max(
     14px,
-    env(safe-area-inset-bottom, 0px),
-    env(safe-area-max-inset-bottom, 0px)
+    var(--chat-safe-area-bottom),
+    var(--browser-bottom-reserve)
   );
   overflow: hidden;
 }
@@ -1988,15 +2007,17 @@ body.is-chat-route .chat-shell {
   }
   body.is-chat-route .site-header {
     width: 100%;
-    padding-inline: 12px;
+    padding-top: max(20px, env(safe-area-inset-top, 0px));
+    padding-right: max(12px, env(safe-area-inset-right, 0px));
+    padding-left: max(12px, env(safe-area-inset-left, 0px));
   }
   body.is-chat-route .chat-page {
     width: 100%;
     padding: 15px 0
       max(
         8px,
-        env(safe-area-inset-bottom, 0px),
-        env(safe-area-max-inset-bottom, 0px)
+        var(--chat-safe-area-bottom),
+        var(--browser-bottom-reserve)
       );
   }
   .chat-shell {
@@ -2006,6 +2027,8 @@ body.is-chat-route .chat-shell {
   }
   body.is-chat-route .chat-shell {
     width: 100%;
+    padding-right: max(11px, env(safe-area-inset-right, 0px));
+    padding-left: max(11px, env(safe-area-inset-left, 0px));
     border-inline: 0;
     border-radius: 0;
   }
@@ -2063,6 +2086,8 @@ body.is-chat-route .chat-shell {
     border-radius: 21px 21px 6px 21px;
   }
   .chat-composer {
+    position: relative;
+    z-index: 1;
     padding-left: 16px;
   }
   .past-about p {

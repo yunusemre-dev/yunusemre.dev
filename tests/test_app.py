@@ -274,7 +274,7 @@ def test_spa_and_seed_gallery():
         assert "{{SEO_" not in home.text
         assert "Yunus Emre Kepenek — software engineer</title>" in home.text
         assert 'rel="canonical" href="https://www.yunusemre.dev/"' in home.text
-        assert "viewport-fit=contain" in home.text
+        assert "viewport-fit=cover" in home.text
         assert 'name="robots" content="index, follow, max-image-preview:large"' in home.text
         assert 'type="application/ld+json"' in home.text
         apex = client.get(
@@ -358,6 +358,12 @@ def test_spa_and_seed_gallery():
         assert "viewport.height + viewport.offsetTop" not in app_script
         assert 'addEventListener("scroll", scheduleAppViewportSync' not in app_script
         assert '"--app-viewport-height"' in app_script
+        assert "/CriOS\\//" in app_script
+        assert '"is-virtual-keyboard-open"' in app_script
+        assert "viewportBaselineHeight - visibleViewportHeight > 160" in app_script
+        assert "--browser-bottom-reserve: 84px" in styles
+        assert "var(--browser-bottom-reserve)" in styles
+        assert "html.is-chat-route" in styles
         assert "body.is-chat-route .site-header" in styles
         assert "padding: 15px 0" in styles
         assert "border-inline: 0" in styles

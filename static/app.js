@@ -7,13 +7,41 @@ const galleryVisitorId =
   localStorage.getItem("yunus-gallery-visitor") || crypto.randomUUID();
 localStorage.setItem("yunus-gallery-visitor", galleryVisitorId);
 
+const documentRoot = document.documentElement;
+const isIOSChrome = /CriOS\//.test(navigator.userAgent);
 let viewportSyncFrame = null;
+let viewportBaselineHeight = 0;
+let viewportBaselineWidth = 0;
+
+documentRoot.classList.toggle("is-ios-chrome", isIOSChrome);
 
 function syncAppViewportHeight() {
   const viewport = window.visualViewport;
   // Some mobile browsers overlay their bottom toolbar without updating vh units.
   const visibleViewportHeight = viewport?.height || window.innerHeight;
-  document.documentElement.style.setProperty(
+  const visibleViewportWidth = viewport?.width || window.innerWidth;
+  const scale = viewport?.scale || 1;
+  const orientationChanged =
+    viewportBaselineWidth &&
+    Math.abs(visibleViewportWidth - viewportBaselineWidth) > 80;
+
+  if (!viewportBaselineHeight || orientationChanged) {
+    viewportBaselineHeight = visibleViewportHeight;
+    viewportBaselineWidth = visibleViewportWidth;
+  } else if (scale === 1 && visibleViewportHeight > viewportBaselineHeight) {
+    viewportBaselineHeight = visibleViewportHeight;
+  }
+
+  const virtualKeyboardOpen =
+    isIOSChrome &&
+    scale === 1 &&
+    viewportBaselineHeight - visibleViewportHeight > 160;
+
+  documentRoot.classList.toggle(
+    "is-virtual-keyboard-open",
+    virtualKeyboardOpen,
+  );
+  documentRoot.style.setProperty(
     "--app-viewport-height",
     `${Math.floor(visibleViewportHeight)}px`,
   );
@@ -239,10 +267,9 @@ function bindLinks() {
 function setPage(markup, routeClass = "") {
   if (state.cleanup) state.cleanup();
   state.cleanup = null;
-  document.body.classList.toggle(
-    "is-chat-route",
-    routeClass === "is-chat-route",
-  );
+  const isChatRoute = routeClass === "is-chat-route";
+  documentRoot.classList.toggle("is-chat-route", isChatRoute);
+  document.body.classList.toggle("is-chat-route", isChatRoute);
   app.innerHTML = markup;
   bindLinks();
   window.scrollTo({ top: 0, behavior: "instant" });
