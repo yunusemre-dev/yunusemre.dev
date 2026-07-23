@@ -1,9 +1,5 @@
 const app = document.querySelector("#app");
 const toast = document.querySelector("#toast");
-document.documentElement.classList.toggle(
-  "is-ios-chrome",
-  /CriOS\//.test(navigator.userAgent),
-);
 const operatorSessionId =
   sessionStorage.getItem("yunus-operator-session") || crypto.randomUUID();
 sessionStorage.setItem("yunus-operator-session", operatorSessionId);
@@ -410,24 +406,19 @@ function syncPromptVisibility() {
   );
 }
 
-const messageScrollFrames = new WeakMap();
+let mobileChatScrollFrame = null;
 
-function scrollMessageListToBottom(messages, behavior = "auto") {
-  if (!messages) return;
-  const previous = messageScrollFrames.get(messages);
-  if (previous?.first) cancelAnimationFrame(previous.first);
-  if (previous?.second) cancelAnimationFrame(previous.second);
-
-  messages.scrollTo({ top: messages.scrollHeight, behavior });
-  const pending = { first: null, second: null };
-  pending.first = requestAnimationFrame(() => {
-    messages.scrollTop = messages.scrollHeight;
-    pending.second = requestAnimationFrame(() => {
-      messages.scrollTop = messages.scrollHeight;
-      messageScrollFrames.delete(messages);
+function scrollChatToMessage(messages, element, behavior = "auto") {
+  if (window.matchMedia("(max-width: 620px)").matches) {
+    if (mobileChatScrollFrame) cancelAnimationFrame(mobileChatScrollFrame);
+    mobileChatScrollFrame = requestAnimationFrame(() => {
+      mobileChatScrollFrame = null;
+      if (!element?.isConnected) return;
+      element.scrollIntoView({ behavior, block: "end" });
     });
-  });
-  messageScrollFrames.set(messages, pending);
+    return;
+  }
+  messages.scrollTo({ top: messages.scrollHeight, behavior });
 }
 
 function addMessage(message, temporary = false) {
@@ -460,7 +451,11 @@ function addMessage(message, temporary = false) {
   }
   const element = messages.lastElementChild;
   syncPromptVisibility();
-  scrollMessageListToBottom(messages, temporary ? "smooth" : "auto");
+  scrollChatToMessage(
+    messages,
+    element,
+    temporary ? "smooth" : "auto",
+  );
   return element;
 }
 
@@ -566,32 +561,7 @@ async function renderChat() {
   let lastVisitorTypingSignal = 0;
   let visitorTypingIdleTimer = null;
   let visitorTypingRequests = Promise.resolve();
-  let viewportSyncFrame = null;
-  const mobileViewport = window.matchMedia("(max-width: 620px)");
   const chatConversationId = state.conversationId;
-
-  function syncChatViewport() {
-    if (viewportSyncFrame) cancelAnimationFrame(viewportSyncFrame);
-    viewportSyncFrame = requestAnimationFrame(() => {
-      viewportSyncFrame = null;
-      if (mobileViewport.matches) {
-        const height = Math.round(
-          window.visualViewport?.height || window.innerHeight,
-        );
-        if (height > 0) {
-          document.documentElement.style.setProperty(
-            "--chat-viewport-height",
-            `${height}px`,
-          );
-        }
-      } else {
-        document.documentElement.style.removeProperty(
-          "--chat-viewport-height",
-        );
-      }
-      scrollMessageListToBottom(messages);
-    });
-  }
 
   function queueVisitorTypingUpdate(typing) {
     visitorTypingRequests = visitorTypingRequests
@@ -656,8 +626,7 @@ async function renderChat() {
 
   setChatStatus(initialTakeover, { notify: false });
   setOperatorTyping(initialTakeover && initialOperatorTyping);
-  syncChatViewport();
-  scrollMessageListToBottom(messages);
+  messages.scrollTop = messages.scrollHeight;
   prepareSubmissionBotCheck();
   if (loadError) showToast(loadError.message);
 
@@ -736,7 +705,7 @@ async function renderChat() {
           if (event.type === "delta" && streamingElement) {
             streamingElement.querySelector("p").textContent += event.delta;
             const messages = document.querySelector("#messages");
-            scrollMessageListToBottom(messages);
+            scrollChatToMessage(messages, streamingElement);
           }
           if (event.type === "done" && streamingElement) {
             streamingElement.removeAttribute("data-temporary");
@@ -746,7 +715,7 @@ async function renderChat() {
               state.lastMessageId,
               Number(event.message.id),
             );
-            scrollMessageListToBottom(messages);
+            scrollChatToMessage(messages, streamingElement);
           }
         }
         if (done) break;
@@ -760,8 +729,7 @@ async function renderChat() {
       sending = false;
       input.disabled = false;
       syncSubmitControls();
-      input.focus({ preventScroll: true });
-      scrollMessageListToBottom(messages);
+      input.focus();
     }
   }
 
@@ -801,22 +769,12 @@ async function renderChat() {
   });
 
   syncPromptVisibility();
-  window.addEventListener("resize", syncChatViewport);
-  window.visualViewport?.addEventListener("resize", syncChatViewport);
-  window.visualViewport?.addEventListener("scroll", syncChatViewport);
-  mobileViewport.addEventListener("change", syncChatViewport);
   const interval = window.setInterval(pollChat, 1200);
   state.cleanup = () => {
     window.clearInterval(interval);
     window.clearTimeout(botCheckRetry);
-    if (viewportSyncFrame) cancelAnimationFrame(viewportSyncFrame);
     stopVisitorTyping().catch(() => {});
     window.removeEventListener("wheel", redirectPageWheel);
-    window.removeEventListener("resize", syncChatViewport);
-    window.visualViewport?.removeEventListener("resize", syncChatViewport);
-    window.visualViewport?.removeEventListener("scroll", syncChatViewport);
-    mobileViewport.removeEventListener("change", syncChatViewport);
-    document.documentElement.style.removeProperty("--chat-viewport-height");
   };
 }
 

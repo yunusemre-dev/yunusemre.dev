@@ -243,7 +243,7 @@ svg {
 }
 
 body.is-chat-route {
-  height: var(--chat-viewport-height, 100svh);
+  height: 100svh;
   overflow: hidden;
   overscroll-behavior: none;
 }
@@ -1961,14 +1961,32 @@ body.is-chat-route .chat-shell {
 }
 
 @media (max-width: 620px) {
-  html.is-ios-chrome {
-    --browser-toolbar-inset: clamp(56px, 16vw, 72px);
+  body.is-chat-route {
+    height: auto;
+    min-height: 100svh;
+    overflow-y: auto;
+    overscroll-behavior-y: auto;
   }
-  html.is-ios-chrome body.is-chat-route {
-    height: calc(
-      var(--chat-viewport-height, 100svh) - var(--browser-toolbar-inset)
-    );
+  body.is-chat-route #app {
+    display: block;
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+  }
+  body.is-chat-route .chat-page {
+    overflow: visible;
+  }
+  body.is-chat-route .chat-shell {
+    grid-template-rows: auto auto auto auto;
+    height: auto;
     min-height: 0;
+    max-height: none;
+    overflow: visible;
+  }
+  body.is-chat-route .messages {
+    min-height: 280px;
+    overflow: visible;
+    overscroll-behavior: auto;
   }
   .shell {
     width: calc(100% - 24px);
