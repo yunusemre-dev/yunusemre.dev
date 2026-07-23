@@ -26,7 +26,9 @@ function syncAppViewportHeight() {
   // Some mobile browsers overlay their bottom toolbar without updating vh units.
   const visibleViewportHeight = viewport?.height || window.innerHeight;
   const visibleViewportWidth = viewport?.width || window.innerWidth;
+  const visibleViewportOffsetTop = viewport?.offsetTop || 0;
   const scale = viewport?.scale || 1;
+  const isUnzoomed = Math.abs(scale - 1) < 0.05;
   const orientationChanged =
     viewportBaselineWidth &&
     Math.abs(visibleViewportWidth - viewportBaselineWidth) > 80;
@@ -34,13 +36,13 @@ function syncAppViewportHeight() {
   if (!viewportBaselineHeight || orientationChanged) {
     viewportBaselineHeight = visibleViewportHeight;
     viewportBaselineWidth = visibleViewportWidth;
-  } else if (scale === 1 && visibleViewportHeight > viewportBaselineHeight) {
+  } else if (isUnzoomed && visibleViewportHeight > viewportBaselineHeight) {
     viewportBaselineHeight = visibleViewportHeight;
   }
 
   const virtualKeyboardOpen =
     hasMobileChromeBottomBar &&
-    scale === 1 &&
+    isUnzoomed &&
     viewportBaselineHeight - visibleViewportHeight > 160;
 
   documentRoot.classList.toggle(
@@ -50,6 +52,10 @@ function syncAppViewportHeight() {
   documentRoot.style.setProperty(
     "--app-viewport-height",
     `${Math.floor(visibleViewportHeight)}px`,
+  );
+  documentRoot.style.setProperty(
+    "--app-viewport-offset-top",
+    `${Math.floor(visibleViewportOffsetTop)}px`,
   );
 }
 

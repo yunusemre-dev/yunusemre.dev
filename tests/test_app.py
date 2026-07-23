@@ -358,6 +358,7 @@ def test_spa_and_seed_gallery():
         assert "viewport.height + viewport.offsetTop" not in app_script
         assert 'addEventListener("scroll", scheduleAppViewportSync' not in app_script
         assert '"--app-viewport-height"' in app_script
+        assert '"--app-viewport-offset-top"' in app_script
         assert "/CriOS\\//" in app_script
         assert "/Android/" in app_script
         assert '"is-android-chrome"' in app_script
@@ -369,7 +370,11 @@ def test_spa_and_seed_gallery():
         assert "var(--browser-bottom-reserve)" in styles
         assert "html.is-chat-route" in styles
         assert "body.is-chat-route {\n  position: fixed;" in styles
+        assert "top: var(--app-viewport-offset-top, 0px)" in styles
         assert "-webkit-overflow-scrolling: touch" in styles
+        assert "html.is-virtual-keyboard-open body.is-chat-route .site-header" in styles
+        assert "grid-template-rows: minmax(0, 1fr)" in styles
+        assert ".chat-composer textarea {\n    font-size: 16px;" in styles
         assert "body.is-chat-route .site-header" in styles
         assert "padding: 15px 0" in styles
         assert "border-inline: 0" in styles
