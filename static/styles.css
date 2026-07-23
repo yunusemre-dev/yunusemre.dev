@@ -269,6 +269,13 @@ body.is-chat-route {
   overscroll-behavior: none;
 }
 
+body.is-chat-route {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
 body.is-chat-route #app {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
@@ -412,6 +419,7 @@ body.is-chat-route .chat-shell {
   position: relative;
   padding: 16px 12px 38px;
   border-top: 1px solid #f0f1ee;
+  -webkit-overflow-scrolling: touch;
 }
 
 .message {

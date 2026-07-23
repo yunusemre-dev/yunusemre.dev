@@ -364,6 +364,8 @@ def test_spa_and_seed_gallery():
         assert "--browser-bottom-reserve: 104px" in styles
         assert "var(--browser-bottom-reserve)" in styles
         assert "html.is-chat-route" in styles
+        assert "body.is-chat-route {\n  position: fixed;" in styles
+        assert "-webkit-overflow-scrolling: touch" in styles
         assert "body.is-chat-route .site-header" in styles
         assert "padding: 15px 0" in styles
         assert "border-inline: 0" in styles
