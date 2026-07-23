@@ -370,7 +370,7 @@ async def security_headers(request: Request, call_next):
         response.headers["Strict-Transport-Security"] = "max-age=31536000"
     if host.endswith(".boxd.sh") or path == "/studio" or path.startswith("/api/"):
         response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
-    if path.startswith("/media/") or (
+    if path.startswith("/media/") or path.startswith("/assets/") or (
         path.startswith("/static/") and request.query_params.get("v")
     ):
         response.headers.setdefault(
@@ -1643,6 +1643,23 @@ def service_worker():
         STATIC_DIR / "sw.js",
         media_type="application/javascript",
         headers={"Cache-Control": "no-cache", "Service-Worker-Allowed": "/"},
+    )
+
+
+VERSIONED_ASSETS = {
+    "app.js": "application/javascript",
+    "styles.css": "text/css",
+}
+
+
+@app.get("/assets/{version}/{asset_name}", include_in_schema=False)
+def versioned_asset(version: str, asset_name: str):
+    if not version or asset_name not in VERSIONED_ASSETS:
+        raise HTTPException(status_code=404)
+    return FileResponse(
+        STATIC_DIR / asset_name,
+        media_type=VERSIONED_ASSETS[asset_name],
+        headers={"Cache-Control": "public, max-age=31536000, immutable"},
     )
 
 

@@ -321,6 +321,12 @@ def test_spa_and_seed_gallery():
         service_worker = client.get("/sw.js")
         assert service_worker.status_code == 200
         assert service_worker.headers["service-worker-allowed"] == "/"
+        versioned_script = client.get("/assets/20260724-1/app.js")
+        assert versioned_script.status_code == 200
+        assert versioned_script.headers["cache-control"].endswith("immutable")
+        assert client.get("/assets/20260724-1/unknown.js").status_code == 404
+        assert '/assets/20260724-1/styles.css' in home.text
+        assert '/assets/20260724-1/app.js' in home.text
         app_script = client.get("/static/app.js").text
         assert "photo-skeleton" not in app_script
         assert "photo-placeholder" in app_script
