@@ -1,5 +1,9 @@
 const app = document.querySelector("#app");
 const toast = document.querySelector("#toast");
+document.documentElement.classList.toggle(
+  "is-ios-chrome",
+  /CriOS\//.test(navigator.userAgent),
+);
 const operatorSessionId =
   sessionStorage.getItem("yunus-operator-session") || crypto.randomUUID();
 sessionStorage.setItem("yunus-operator-session", operatorSessionId);

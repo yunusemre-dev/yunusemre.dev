@@ -1961,6 +1961,15 @@ body.is-chat-route .chat-shell {
 }
 
 @media (max-width: 620px) {
+  html.is-ios-chrome {
+    --browser-toolbar-inset: clamp(56px, 16vw, 72px);
+  }
+  html.is-ios-chrome body.is-chat-route {
+    height: calc(
+      var(--chat-viewport-height, 100svh) - var(--browser-toolbar-inset)
+    );
+    min-height: 0;
+  }
   .shell {
     width: calc(100% - 24px);
   }

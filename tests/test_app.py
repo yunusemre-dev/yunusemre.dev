@@ -321,12 +321,12 @@ def test_spa_and_seed_gallery():
         service_worker = client.get("/sw.js")
         assert service_worker.status_code == 200
         assert service_worker.headers["service-worker-allowed"] == "/"
-        versioned_script = client.get("/assets/20260724-1/app.js")
+        versioned_script = client.get("/assets/20260724-2/app.js")
         assert versioned_script.status_code == 200
         assert versioned_script.headers["cache-control"].endswith("immutable")
-        assert client.get("/assets/20260724-1/unknown.js").status_code == 404
-        assert '/assets/20260724-1/styles.css' in home.text
-        assert '/assets/20260724-1/app.js' in home.text
+        assert client.get("/assets/20260724-2/unknown.js").status_code == 404
+        assert '/assets/20260724-2/styles.css' in home.text
+        assert '/assets/20260724-2/app.js' in home.text
         app_script = client.get("/static/app.js").text
         assert "photo-skeleton" not in app_script
         assert "photo-placeholder" in app_script
@@ -356,6 +356,7 @@ def test_spa_and_seed_gallery():
         assert "window.visualViewport?.height" in app_script
         assert "scrollMessageListToBottom(messages)" in app_script
         assert 'input.focus({ preventScroll: true })' in app_script
+        assert '/CriOS\\//' in app_script
         assert 'fill="currentColor"' in app_script
         assert "/typing" in app_script
         assert "thumbnail_url || photo.url" in app_script
@@ -365,6 +366,7 @@ def test_spa_and_seed_gallery():
         assert "body.is-chat-route .chat-page" in styles
         assert "height: var(--chat-viewport-height, 100svh)" in styles
         assert ".chat-composer textarea {\n    font-size: 16px;" in styles
+        assert "--browser-toolbar-inset: clamp(56px, 16vw, 72px)" in styles
         assert "NOV 2025 — PRESENT" in app_script
         assert "JAN 2023 — SEP 2023" in app_script
         assert '<a href="/static/yunus-emre-kepenek-resume.pdf" target="_blank"' in app_script
