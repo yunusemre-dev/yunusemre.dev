@@ -361,7 +361,7 @@ def test_spa_and_seed_gallery():
         assert "/CriOS\\//" in app_script
         assert '"is-virtual-keyboard-open"' in app_script
         assert "viewportBaselineHeight - visibleViewportHeight > 160" in app_script
-        assert "--browser-bottom-reserve: 84px" in styles
+        assert "--browser-bottom-reserve: 104px" in styles
         assert "var(--browser-bottom-reserve)" in styles
         assert "html.is-chat-route" in styles
         assert "body.is-chat-route .site-header" in styles
