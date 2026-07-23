@@ -243,7 +243,7 @@ svg {
 }
 
 body.is-chat-route {
-  height: 100svh;
+  height: var(--chat-viewport-height, 100svh);
   overflow: hidden;
   overscroll-behavior: none;
 }
@@ -1994,9 +1994,10 @@ body.is-chat-route .chat-shell {
       );
   }
   .chat-shell {
-    height: calc(100svh - 229px);
-    min-height: 500px;
     border-radius: 27px;
+  }
+  .chat-composer textarea {
+    font-size: 16px;
   }
   .private-note {
     display: none;

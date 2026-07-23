@@ -347,6 +347,9 @@ def test_spa_and_seed_gallery():
         assert "updateVisitorTyping" in app_script
         assert "redirectPageTouch" not in app_script
         assert 'if (window.matchMedia("(max-width: 620px)").matches) return;' in app_script
+        assert "window.visualViewport?.height" in app_script
+        assert "scrollMessageListToBottom(messages)" in app_script
+        assert 'input.focus({ preventScroll: true })' in app_script
         assert 'fill="currentColor"' in app_script
         assert "/typing" in app_script
         assert "thumbnail_url || photo.url" in app_script
@@ -354,6 +357,8 @@ def test_spa_and_seed_gallery():
         assert "env(safe-area-max-inset-bottom, 0px)" in styles
         assert "44px," in styles
         assert "body.is-chat-route .chat-page" in styles
+        assert "height: var(--chat-viewport-height, 100svh)" in styles
+        assert ".chat-composer textarea {\n    font-size: 16px;" in styles
         assert "NOV 2025 — PRESENT" in app_script
         assert "JAN 2023 — SEP 2023" in app_script
         assert '<a href="/static/yunus-emre-kepenek-resume.pdf" target="_blank"' in app_script

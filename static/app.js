@@ -406,6 +406,26 @@ function syncPromptVisibility() {
   );
 }
 
+const messageScrollFrames = new WeakMap();
+
+function scrollMessageListToBottom(messages, behavior = "auto") {
+  if (!messages) return;
+  const previous = messageScrollFrames.get(messages);
+  if (previous?.first) cancelAnimationFrame(previous.first);
+  if (previous?.second) cancelAnimationFrame(previous.second);
+
+  messages.scrollTo({ top: messages.scrollHeight, behavior });
+  const pending = { first: null, second: null };
+  pending.first = requestAnimationFrame(() => {
+    messages.scrollTop = messages.scrollHeight;
+    pending.second = requestAnimationFrame(() => {
+      messages.scrollTop = messages.scrollHeight;
+      messageScrollFrames.delete(messages);
+    });
+  });
+  messageScrollFrames.set(messages, pending);
+}
+
 function addMessage(message, temporary = false) {
   const messages = document.querySelector("#messages");
   if (!messages) return null;
@@ -436,10 +456,7 @@ function addMessage(message, temporary = false) {
   }
   const element = messages.lastElementChild;
   syncPromptVisibility();
-  messages.scrollTo({
-    top: messages.scrollHeight,
-    behavior: temporary ? "smooth" : "auto",
-  });
+  scrollMessageListToBottom(messages, temporary ? "smooth" : "auto");
   return element;
 }
 
@@ -545,7 +562,32 @@ async function renderChat() {
   let lastVisitorTypingSignal = 0;
   let visitorTypingIdleTimer = null;
   let visitorTypingRequests = Promise.resolve();
+  let viewportSyncFrame = null;
+  const mobileViewport = window.matchMedia("(max-width: 620px)");
   const chatConversationId = state.conversationId;
+
+  function syncChatViewport() {
+    if (viewportSyncFrame) cancelAnimationFrame(viewportSyncFrame);
+    viewportSyncFrame = requestAnimationFrame(() => {
+      viewportSyncFrame = null;
+      if (mobileViewport.matches) {
+        const height = Math.round(
+          window.visualViewport?.height || window.innerHeight,
+        );
+        if (height > 0) {
+          document.documentElement.style.setProperty(
+            "--chat-viewport-height",
+            `${height}px`,
+          );
+        }
+      } else {
+        document.documentElement.style.removeProperty(
+          "--chat-viewport-height",
+        );
+      }
+      scrollMessageListToBottom(messages);
+    });
+  }
 
   function queueVisitorTypingUpdate(typing) {
     visitorTypingRequests = visitorTypingRequests
@@ -610,7 +652,8 @@ async function renderChat() {
 
   setChatStatus(initialTakeover, { notify: false });
   setOperatorTyping(initialTakeover && initialOperatorTyping);
-  messages.scrollTop = messages.scrollHeight;
+  syncChatViewport();
+  scrollMessageListToBottom(messages);
   prepareSubmissionBotCheck();
   if (loadError) showToast(loadError.message);
 
@@ -689,7 +732,7 @@ async function renderChat() {
           if (event.type === "delta" && streamingElement) {
             streamingElement.querySelector("p").textContent += event.delta;
             const messages = document.querySelector("#messages");
-            messages.scrollTop = messages.scrollHeight;
+            scrollMessageListToBottom(messages);
           }
           if (event.type === "done" && streamingElement) {
             streamingElement.removeAttribute("data-temporary");
@@ -699,6 +742,7 @@ async function renderChat() {
               state.lastMessageId,
               Number(event.message.id),
             );
+            scrollMessageListToBottom(messages);
           }
         }
         if (done) break;
@@ -712,7 +756,8 @@ async function renderChat() {
       sending = false;
       input.disabled = false;
       syncSubmitControls();
-      input.focus();
+      input.focus({ preventScroll: true });
+      scrollMessageListToBottom(messages);
     }
   }
 
@@ -752,12 +797,22 @@ async function renderChat() {
   });
 
   syncPromptVisibility();
+  window.addEventListener("resize", syncChatViewport);
+  window.visualViewport?.addEventListener("resize", syncChatViewport);
+  window.visualViewport?.addEventListener("scroll", syncChatViewport);
+  mobileViewport.addEventListener("change", syncChatViewport);
   const interval = window.setInterval(pollChat, 1200);
   state.cleanup = () => {
     window.clearInterval(interval);
     window.clearTimeout(botCheckRetry);
+    if (viewportSyncFrame) cancelAnimationFrame(viewportSyncFrame);
     stopVisitorTyping().catch(() => {});
     window.removeEventListener("wheel", redirectPageWheel);
+    window.removeEventListener("resize", syncChatViewport);
+    window.visualViewport?.removeEventListener("resize", syncChatViewport);
+    window.visualViewport?.removeEventListener("scroll", syncChatViewport);
+    mobileViewport.removeEventListener("change", syncChatViewport);
+    document.documentElement.style.removeProperty("--chat-viewport-height");
   };
 }
 
