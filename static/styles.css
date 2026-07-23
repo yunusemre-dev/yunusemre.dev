@@ -1986,11 +1986,15 @@ body.is-chat-route .chat-shell {
   .site-nav {
     gap: 7px;
   }
+  body.is-chat-route .site-header {
+    width: 100%;
+    padding-inline: 12px;
+  }
   body.is-chat-route .chat-page {
     width: 100%;
-    padding: 15px 8px
+    padding: 15px 0
       max(
-        44px,
+        8px,
         env(safe-area-inset-bottom, 0px),
         env(safe-area-max-inset-bottom, 0px)
       );
@@ -1999,6 +2003,11 @@ body.is-chat-route .chat-shell {
     height: calc(100svh - 229px);
     min-height: 500px;
     border-radius: 27px;
+  }
+  body.is-chat-route .chat-shell {
+    width: 100%;
+    border-inline: 0;
+    border-radius: 0;
   }
   .private-note {
     display: none;

@@ -12,12 +12,10 @@ let viewportSyncFrame = null;
 function syncAppViewportHeight() {
   const viewport = window.visualViewport;
   // Some mobile browsers overlay their bottom toolbar without updating vh units.
-  const visibleViewportBottom = viewport
-    ? viewport.height + viewport.offsetTop
-    : window.innerHeight;
+  const visibleViewportHeight = viewport?.height || window.innerHeight;
   document.documentElement.style.setProperty(
     "--app-viewport-height",
-    `${Math.floor(visibleViewportBottom)}px`,
+    `${Math.floor(visibleViewportHeight)}px`,
   );
 }
 
@@ -38,9 +36,6 @@ window.addEventListener("orientationchange", scheduleAppViewportSync, {
 });
 window.addEventListener("pageshow", scheduleAppViewportSync, { passive: true });
 window.visualViewport?.addEventListener("resize", scheduleAppViewportSync, {
-  passive: true,
-});
-window.visualViewport?.addEventListener("scroll", scheduleAppViewportSync, {
   passive: true,
 });
 
