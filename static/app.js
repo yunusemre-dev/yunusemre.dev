@@ -7,93 +7,6 @@ const galleryVisitorId =
   localStorage.getItem("yunus-gallery-visitor") || crypto.randomUUID();
 localStorage.setItem("yunus-gallery-visitor", galleryVisitorId);
 
-const documentRoot = document.documentElement;
-const viewportMeta = document.querySelector('meta[name="viewport"]');
-const defaultViewportContent = viewportMeta?.getAttribute("content") || "";
-const isIOSChrome = /CriOS\//.test(navigator.userAgent);
-const isAndroidChrome =
-  /Android/.test(navigator.userAgent) &&
-  /Chrome\//.test(navigator.userAgent) &&
-  !/(?:EdgA|OPR)\//.test(navigator.userAgent);
-const hasMobileChromeBottomBar = isIOSChrome || isAndroidChrome;
-let viewportSyncFrame = null;
-let viewportBaselineHeight = 0;
-let viewportBaselineWidth = 0;
-
-documentRoot.classList.toggle("is-ios-chrome", isIOSChrome);
-documentRoot.classList.toggle("is-android-chrome", isAndroidChrome);
-
-function lockIOSChromeInputZoom() {
-  if (!isIOSChrome || !viewportMeta) return;
-  viewportMeta.setAttribute(
-    "content",
-    `${defaultViewportContent}, maximum-scale=1`,
-  );
-}
-
-function unlockIOSChromeInputZoom() {
-  if (!isIOSChrome || !viewportMeta) return;
-  viewportMeta.setAttribute("content", defaultViewportContent);
-}
-
-function syncAppViewportHeight() {
-  const viewport = window.visualViewport;
-  // Some mobile browsers overlay their bottom toolbar without updating vh units.
-  const visibleViewportHeight = viewport?.height || window.innerHeight;
-  const visibleViewportWidth = viewport?.width || window.innerWidth;
-  const visibleViewportOffsetTop = viewport?.offsetTop || 0;
-  const scale = viewport?.scale || 1;
-  const isUnzoomed = Math.abs(scale - 1) < 0.05;
-  const orientationChanged =
-    viewportBaselineWidth &&
-    Math.abs(visibleViewportWidth - viewportBaselineWidth) > 80;
-
-  if (!viewportBaselineHeight || orientationChanged) {
-    viewportBaselineHeight = visibleViewportHeight;
-    viewportBaselineWidth = visibleViewportWidth;
-  } else if (isUnzoomed && visibleViewportHeight > viewportBaselineHeight) {
-    viewportBaselineHeight = visibleViewportHeight;
-  }
-
-  const virtualKeyboardOpen =
-    hasMobileChromeBottomBar &&
-    isUnzoomed &&
-    viewportBaselineHeight - visibleViewportHeight > 160;
-
-  documentRoot.classList.toggle(
-    "is-virtual-keyboard-open",
-    virtualKeyboardOpen,
-  );
-  documentRoot.style.setProperty(
-    "--app-viewport-height",
-    `${Math.floor(visibleViewportHeight)}px`,
-  );
-  documentRoot.style.setProperty(
-    "--app-viewport-offset-top",
-    `${Math.floor(visibleViewportOffsetTop)}px`,
-  );
-}
-
-function scheduleAppViewportSync() {
-  if (viewportSyncFrame !== null) {
-    window.cancelAnimationFrame(viewportSyncFrame);
-  }
-  viewportSyncFrame = window.requestAnimationFrame(() => {
-    viewportSyncFrame = null;
-    syncAppViewportHeight();
-  });
-}
-
-syncAppViewportHeight();
-window.addEventListener("resize", scheduleAppViewportSync, { passive: true });
-window.addEventListener("orientationchange", scheduleAppViewportSync, {
-  passive: true,
-});
-window.addEventListener("pageshow", scheduleAppViewportSync, { passive: true });
-window.visualViewport?.addEventListener("resize", scheduleAppViewportSync, {
-  passive: true,
-});
-
 const state = {
   cleanup: null,
   conversationId: localStorage.getItem("yunus-conversation"),
@@ -294,9 +207,10 @@ function bindLinks() {
 function setPage(markup, routeClass = "") {
   if (state.cleanup) state.cleanup();
   state.cleanup = null;
-  const isChatRoute = routeClass === "is-chat-route";
-  documentRoot.classList.toggle("is-chat-route", isChatRoute);
-  document.body.classList.toggle("is-chat-route", isChatRoute);
+  document.body.classList.toggle(
+    "is-chat-route",
+    routeClass === "is-chat-route",
+  );
   app.innerHTML = markup;
   bindLinks();
   window.scrollTo({ top: 0, behavior: "instant" });
@@ -492,23 +406,6 @@ function syncPromptVisibility() {
   );
 }
 
-let chatScrollFrame = null;
-
-function scrollChatMessagesToBottom(behavior = "auto") {
-  if (chatScrollFrame !== null) {
-    window.cancelAnimationFrame(chatScrollFrame);
-  }
-  chatScrollFrame = window.requestAnimationFrame(() => {
-    chatScrollFrame = null;
-    const messages = document.querySelector("#messages");
-    if (!messages) return;
-    messages.scrollTo({
-      top: messages.scrollHeight,
-      behavior,
-    });
-  });
-}
-
 function addMessage(message, temporary = false) {
   const messages = document.querySelector("#messages");
   if (!messages) return null;
@@ -539,7 +436,10 @@ function addMessage(message, temporary = false) {
   }
   const element = messages.lastElementChild;
   syncPromptVisibility();
-  scrollChatMessagesToBottom(temporary ? "smooth" : "auto");
+  messages.scrollTo({
+    top: messages.scrollHeight,
+    behavior: temporary ? "smooth" : "auto",
+  });
   return element;
 }
 
@@ -816,7 +716,8 @@ async function renderChat() {
           }
           if (event.type === "delta" && streamingElement) {
             streamingElement.querySelector("p").textContent += event.delta;
-            scrollChatMessagesToBottom();
+            const messages = document.querySelector("#messages");
+            messages.scrollTop = messages.scrollHeight;
           }
           if (event.type === "done" && streamingElement) {
             streamingElement.removeAttribute("data-temporary");
@@ -826,7 +727,6 @@ async function renderChat() {
               state.lastMessageId,
               Number(event.message.id),
             );
-            scrollChatMessagesToBottom();
           }
         }
         if (done) break;
@@ -852,12 +752,7 @@ async function renderChat() {
     resizeInput();
     signalVisitorTyping();
   });
-  input.addEventListener("touchstart", lockIOSChromeInputZoom, {
-    passive: true,
-  });
-  input.addEventListener("focus", lockIOSChromeInputZoom);
   input.addEventListener("blur", () => {
-    unlockIOSChromeInputZoom();
     stopVisitorTyping().catch(() => {});
   });
   input.addEventListener("keydown", (event) => {
@@ -889,7 +784,6 @@ async function renderChat() {
   state.cleanup = () => {
     window.clearInterval(interval);
     window.clearTimeout(botCheckRetry);
-    unlockIOSChromeInputZoom();
     stopVisitorTyping().catch(() => {});
     window.removeEventListener("wheel", redirectPageWheel);
     window.removeEventListener("touchstart", startPageTouch);

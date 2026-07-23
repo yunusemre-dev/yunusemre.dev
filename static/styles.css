@@ -13,23 +13,6 @@
   --radius: 24px;
   --radius-lg: 38px;
   --shadow-soft: 0 24px 80px rgba(18, 28, 22, 0.06);
-  --browser-bottom-reserve: 0px;
-  --chat-safe-area-bottom: max(
-    env(safe-area-inset-bottom, 0px),
-    env(safe-area-max-inset-bottom, 0px)
-  );
-}
-
-html.is-ios-chrome:not(.is-virtual-keyboard-open) {
-  --browser-bottom-reserve: 104px;
-}
-
-html.is-android-chrome:not(.is-virtual-keyboard-open) {
-  --browser-bottom-reserve: 48px;
-}
-
-html.is-virtual-keyboard-open {
-  --chat-safe-area-bottom: 0px;
 }
 
 * {
@@ -55,11 +38,6 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background: var(--paper);
-}
-
-body:not(.is-chat-route) {
-  padding-inline: env(safe-area-inset-left, 0px)
-    env(safe-area-inset-right, 0px);
 }
 
 button,
@@ -264,20 +242,10 @@ svg {
   padding: 12px 0 96px;
 }
 
-html.is-chat-route,
 body.is-chat-route {
-  height: 100vh;
   height: 100svh;
-  height: var(--app-viewport-height, 100svh);
   overflow: hidden;
   overscroll-behavior: none;
-}
-
-body.is-chat-route {
-  position: fixed;
-  top: var(--app-viewport-offset-top, 0px);
-  left: 0;
-  width: 100%;
 }
 
 body.is-chat-route #app {
@@ -291,8 +259,8 @@ body.is-chat-route .chat-page {
   min-height: 0;
   padding-bottom: max(
     14px,
-    var(--chat-safe-area-bottom),
-    var(--browser-bottom-reserve)
+    env(safe-area-inset-bottom, 0px),
+    env(safe-area-max-inset-bottom, 0px)
   );
   overflow: hidden;
 }
@@ -302,23 +270,6 @@ body.is-chat-route .chat-shell {
   height: 100%;
   min-height: 0;
   max-height: 670px;
-}
-
-html.is-virtual-keyboard-open body.is-chat-route #app {
-  grid-template-rows: minmax(0, 1fr);
-}
-
-html.is-virtual-keyboard-open body.is-chat-route .site-header {
-  display: none;
-}
-
-html.is-virtual-keyboard-open body.is-chat-route .chat-page {
-  padding-top: 8px;
-  padding-bottom: 8px;
-}
-
-html.is-virtual-keyboard-open body.is-chat-route .chat-shell {
-  max-height: none;
 }
 
 .chat-shell {
@@ -440,7 +391,6 @@ html.is-virtual-keyboard-open body.is-chat-route .chat-shell {
   position: relative;
   padding: 16px 12px 38px;
   border-top: 1px solid #f0f1ee;
-  -webkit-overflow-scrolling: touch;
 }
 
 .message {
@@ -2034,32 +1984,19 @@ html.is-virtual-keyboard-open body.is-chat-route .chat-shell {
   .site-nav {
     gap: 7px;
   }
-  body.is-chat-route .site-header {
-    width: 100%;
-    padding-top: max(20px, env(safe-area-inset-top, 0px));
-    padding-right: max(12px, env(safe-area-inset-right, 0px));
-    padding-left: max(12px, env(safe-area-inset-left, 0px));
-  }
   body.is-chat-route .chat-page {
     width: 100%;
-    padding: 15px 0
+    padding: 15px 8px
       max(
-        8px,
-        var(--chat-safe-area-bottom),
-        var(--browser-bottom-reserve)
+        44px,
+        env(safe-area-inset-bottom, 0px),
+        env(safe-area-max-inset-bottom, 0px)
       );
   }
   .chat-shell {
     height: calc(100svh - 229px);
     min-height: 500px;
     border-radius: 27px;
-  }
-  body.is-chat-route .chat-shell {
-    width: 100%;
-    padding-right: max(11px, env(safe-area-inset-right, 0px));
-    padding-left: max(11px, env(safe-area-inset-left, 0px));
-    border-inline: 0;
-    border-radius: 0;
   }
   .private-note {
     display: none;
@@ -2115,13 +2052,7 @@ html.is-virtual-keyboard-open body.is-chat-route .chat-shell {
     border-radius: 21px 21px 6px 21px;
   }
   .chat-composer {
-    position: relative;
-    z-index: 1;
     padding-left: 16px;
-  }
-  .chat-composer textarea {
-    /* Stay above WebKit's input-focus zoom threshold on physical iPhones. */
-    font-size: 17px;
   }
   .past-about p {
     font-size: 14px;

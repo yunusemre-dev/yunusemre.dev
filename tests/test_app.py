@@ -274,7 +274,7 @@ def test_spa_and_seed_gallery():
         assert "{{SEO_" not in home.text
         assert "Yunus Emre Kepenek — software engineer</title>" in home.text
         assert 'rel="canonical" href="https://www.yunusemre.dev/"' in home.text
-        assert "viewport-fit=cover" in home.text
+        assert "viewport-fit=contain" in home.text
         assert 'name="robots" content="index, follow, max-image-preview:large"' in home.text
         assert 'type="application/ld+json"' in home.text
         apex = client.get(
@@ -352,37 +352,6 @@ def test_spa_and_seed_gallery():
         assert "env(safe-area-max-inset-bottom, 0px)" in styles
         assert "44px," in styles
         assert "body.is-chat-route .chat-page" in styles
-        assert "height: var(--app-viewport-height, 100svh)" in styles
-        assert "window.visualViewport" in app_script
-        assert "viewport?.height || window.innerHeight" in app_script
-        assert "viewport.height + viewport.offsetTop" not in app_script
-        assert 'addEventListener("scroll", scheduleAppViewportSync' not in app_script
-        assert '"--app-viewport-height"' in app_script
-        assert '"--app-viewport-offset-top"' in app_script
-        assert "/CriOS\\//" in app_script
-        assert "/Android/" in app_script
-        assert '"is-android-chrome"' in app_script
-        assert "hasMobileChromeBottomBar" in app_script
-        assert '"is-virtual-keyboard-open"' in app_script
-        assert "viewportBaselineHeight - visibleViewportHeight > 160" in app_script
-        assert "--browser-bottom-reserve: 104px" in styles
-        assert "--browser-bottom-reserve: 48px" in styles
-        assert "var(--browser-bottom-reserve)" in styles
-        assert "html.is-chat-route" in styles
-        assert "body.is-chat-route {\n  position: fixed;" in styles
-        assert "top: var(--app-viewport-offset-top, 0px)" in styles
-        assert "-webkit-overflow-scrolling: touch" in styles
-        assert "html.is-virtual-keyboard-open body.is-chat-route .site-header" in styles
-        assert "grid-template-rows: minmax(0, 1fr)" in styles
-        assert ".chat-composer textarea {\n    /* Stay above WebKit" in styles
-        assert "font-size: 17px;" in styles
-        assert "lockIOSChromeInputZoom" in app_script
-        assert "unlockIOSChromeInputZoom" in app_script
-        assert "maximum-scale=1" in app_script
-        assert "scrollChatMessagesToBottom" in app_script
-        assert "body.is-chat-route .site-header" in styles
-        assert "padding: 15px 0" in styles
-        assert "border-inline: 0" in styles
         assert "NOV 2025 — PRESENT" in app_script
         assert "JAN 2023 — SEP 2023" in app_script
         assert '<a href="/static/yunus-emre-kepenek-resume.pdf" target="_blank"' in app_script
