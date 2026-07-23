@@ -8,6 +8,8 @@ const galleryVisitorId =
 localStorage.setItem("yunus-gallery-visitor", galleryVisitorId);
 
 const documentRoot = document.documentElement;
+const viewportMeta = document.querySelector('meta[name="viewport"]');
+const defaultViewportContent = viewportMeta?.getAttribute("content") || "";
 const isIOSChrome = /CriOS\//.test(navigator.userAgent);
 const isAndroidChrome =
   /Android/.test(navigator.userAgent) &&
@@ -20,6 +22,19 @@ let viewportBaselineWidth = 0;
 
 documentRoot.classList.toggle("is-ios-chrome", isIOSChrome);
 documentRoot.classList.toggle("is-android-chrome", isAndroidChrome);
+
+function lockIOSChromeInputZoom() {
+  if (!isIOSChrome || !viewportMeta) return;
+  viewportMeta.setAttribute(
+    "content",
+    `${defaultViewportContent}, maximum-scale=1`,
+  );
+}
+
+function unlockIOSChromeInputZoom() {
+  if (!isIOSChrome || !viewportMeta) return;
+  viewportMeta.setAttribute("content", defaultViewportContent);
+}
 
 function syncAppViewportHeight() {
   const viewport = window.visualViewport;
@@ -477,6 +492,23 @@ function syncPromptVisibility() {
   );
 }
 
+let chatScrollFrame = null;
+
+function scrollChatMessagesToBottom(behavior = "auto") {
+  if (chatScrollFrame !== null) {
+    window.cancelAnimationFrame(chatScrollFrame);
+  }
+  chatScrollFrame = window.requestAnimationFrame(() => {
+    chatScrollFrame = null;
+    const messages = document.querySelector("#messages");
+    if (!messages) return;
+    messages.scrollTo({
+      top: messages.scrollHeight,
+      behavior,
+    });
+  });
+}
+
 function addMessage(message, temporary = false) {
   const messages = document.querySelector("#messages");
   if (!messages) return null;
@@ -507,10 +539,7 @@ function addMessage(message, temporary = false) {
   }
   const element = messages.lastElementChild;
   syncPromptVisibility();
-  messages.scrollTo({
-    top: messages.scrollHeight,
-    behavior: temporary ? "smooth" : "auto",
-  });
+  scrollChatMessagesToBottom(temporary ? "smooth" : "auto");
   return element;
 }
 
@@ -787,8 +816,7 @@ async function renderChat() {
           }
           if (event.type === "delta" && streamingElement) {
             streamingElement.querySelector("p").textContent += event.delta;
-            const messages = document.querySelector("#messages");
-            messages.scrollTop = messages.scrollHeight;
+            scrollChatMessagesToBottom();
           }
           if (event.type === "done" && streamingElement) {
             streamingElement.removeAttribute("data-temporary");
@@ -798,6 +826,7 @@ async function renderChat() {
               state.lastMessageId,
               Number(event.message.id),
             );
+            scrollChatMessagesToBottom();
           }
         }
         if (done) break;
@@ -823,7 +852,12 @@ async function renderChat() {
     resizeInput();
     signalVisitorTyping();
   });
+  input.addEventListener("touchstart", lockIOSChromeInputZoom, {
+    passive: true,
+  });
+  input.addEventListener("focus", lockIOSChromeInputZoom);
   input.addEventListener("blur", () => {
+    unlockIOSChromeInputZoom();
     stopVisitorTyping().catch(() => {});
   });
   input.addEventListener("keydown", (event) => {
@@ -855,6 +889,7 @@ async function renderChat() {
   state.cleanup = () => {
     window.clearInterval(interval);
     window.clearTimeout(botCheckRetry);
+    unlockIOSChromeInputZoom();
     stopVisitorTyping().catch(() => {});
     window.removeEventListener("wheel", redirectPageWheel);
     window.removeEventListener("touchstart", startPageTouch);

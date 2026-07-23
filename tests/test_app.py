@@ -374,7 +374,12 @@ def test_spa_and_seed_gallery():
         assert "-webkit-overflow-scrolling: touch" in styles
         assert "html.is-virtual-keyboard-open body.is-chat-route .site-header" in styles
         assert "grid-template-rows: minmax(0, 1fr)" in styles
-        assert ".chat-composer textarea {\n    font-size: 16px;" in styles
+        assert ".chat-composer textarea {\n    /* Stay above WebKit" in styles
+        assert "font-size: 17px;" in styles
+        assert "lockIOSChromeInputZoom" in app_script
+        assert "unlockIOSChromeInputZoom" in app_script
+        assert "maximum-scale=1" in app_script
+        assert "scrollChatMessagesToBottom" in app_script
         assert "body.is-chat-route .site-header" in styles
         assert "padding: 15px 0" in styles
         assert "border-inline: 0" in styles
