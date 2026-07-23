@@ -9,11 +9,17 @@ localStorage.setItem("yunus-gallery-visitor", galleryVisitorId);
 
 const documentRoot = document.documentElement;
 const isIOSChrome = /CriOS\//.test(navigator.userAgent);
+const isAndroidChrome =
+  /Android/.test(navigator.userAgent) &&
+  /Chrome\//.test(navigator.userAgent) &&
+  !/(?:EdgA|OPR)\//.test(navigator.userAgent);
+const hasMobileChromeBottomBar = isIOSChrome || isAndroidChrome;
 let viewportSyncFrame = null;
 let viewportBaselineHeight = 0;
 let viewportBaselineWidth = 0;
 
 documentRoot.classList.toggle("is-ios-chrome", isIOSChrome);
+documentRoot.classList.toggle("is-android-chrome", isAndroidChrome);
 
 function syncAppViewportHeight() {
   const viewport = window.visualViewport;
@@ -33,7 +39,7 @@ function syncAppViewportHeight() {
   }
 
   const virtualKeyboardOpen =
-    isIOSChrome &&
+    hasMobileChromeBottomBar &&
     scale === 1 &&
     viewportBaselineHeight - visibleViewportHeight > 160;
 

@@ -24,6 +24,10 @@ html.is-ios-chrome:not(.is-virtual-keyboard-open) {
   --browser-bottom-reserve: 104px;
 }
 
+html.is-android-chrome:not(.is-virtual-keyboard-open) {
+  --browser-bottom-reserve: 48px;
+}
+
 html.is-virtual-keyboard-open {
   --chat-safe-area-bottom: 0px;
 }
