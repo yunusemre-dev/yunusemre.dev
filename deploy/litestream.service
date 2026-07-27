@@ -1,0 +1,18 @@
+[Unit]
+Description=Continuous offsite backup for the Yunus Emre portfolio database
+After=network-online.target yunus-portfolio.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=boxd
+Group=boxd
+EnvironmentFile=/etc/yunus-portfolio-backup.env
+ExecStart=/usr/local/bin/litestream replicate -config /etc/litestream.yml
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

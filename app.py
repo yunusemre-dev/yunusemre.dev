@@ -17,7 +17,7 @@ import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import AsyncIterator, Literal, Optional
+from typing import Any, AsyncIterator, Literal, Optional, Sequence
 
 import httpx
 from fastapi import Cookie, Depends, FastAPI, File, Form, HTTPException, Request, Response, UploadFile
@@ -52,12 +52,23 @@ GEOLOCATION_URL_TEMPLATE = os.getenv(
     "GEOLOCATION_URL_TEMPLATE", "https://ipapi.co/{ip}/json/"
 )
 PUSH_CONTACT = os.getenv("PUSH_CONTACT", "mailto:yunus.emre.kepenek@outlook.com")
+R2_ENDPOINT_URL = os.getenv("R2_ENDPOINT_URL", "").rstrip("/")
+R2_BUCKET = os.getenv("R2_BUCKET", "")
+R2_ACCESS_KEY_ID = os.getenv("R2_ACCESS_KEY_ID", "")
+R2_SECRET_ACCESS_KEY = os.getenv("R2_SECRET_ACCESS_KEY", "")
+R2_BACKUP_PREFIX = os.getenv("R2_BACKUP_PREFIX", "portfolio").strip("/")
+R2_BACKUP_REQUIRED = os.getenv("R2_BACKUP_REQUIRED", "").lower() in {
+    "1",
+    "true",
+    "yes",
+}
 VAPID_PRIVATE_KEY_PATH = DATA_DIR / "vapid_private.pem"
 BOT_CHECK_SECRET_PATH = DATA_DIR / "bot_check_secret"
 BOT_CHECK_DIFFICULTY = max(8, min(20, int(os.getenv("BOT_CHECK_DIFFICULTY", "13"))))
 BOT_CHECK_TTL_SECONDS = 10 * 60
 _vapid_public_key: Optional[str] = None
 _bot_check_secret: Optional[bytes] = None
+_r2_client_cache: Optional[Any] = None
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -65,6 +76,82 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+class BackupUnavailableError(RuntimeError):
+    pass
+
+
+def r2_backup_configured() -> bool:
+    return all(
+        (
+            R2_ENDPOINT_URL,
+            R2_BUCKET,
+            R2_ACCESS_KEY_ID,
+            R2_SECRET_ACCESS_KEY,
+        )
+    )
+
+
+def r2_client() -> Optional[Any]:
+    global _r2_client_cache
+    if _r2_client_cache is not None:
+        return _r2_client_cache
+    if not r2_backup_configured():
+        if R2_BACKUP_REQUIRED:
+            raise BackupUnavailableError("R2 backup is required but not configured")
+        return None
+    try:
+        import boto3
+        from botocore.config import Config
+
+        _r2_client_cache = boto3.client(
+            service_name="s3",
+            endpoint_url=R2_ENDPOINT_URL,
+            aws_access_key_id=R2_ACCESS_KEY_ID,
+            aws_secret_access_key=R2_SECRET_ACCESS_KEY,
+            region_name="auto",
+            config=Config(
+                signature_version="s3v4",
+                retries={"max_attempts": 5, "mode": "standard"},
+            ),
+        )
+    except Exception as exc:
+        raise BackupUnavailableError("R2 backup client could not start") from exc
+    return _r2_client_cache
+
+
+def photo_backup_key(filename: str) -> str:
+    prefix = f"{R2_BACKUP_PREFIX}/" if R2_BACKUP_PREFIX else ""
+    return f"{prefix}uploads/{filename}"
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def backup_photo_files(paths: Sequence[Path]) -> bool:
+    client = r2_client()
+    if client is None:
+        return False
+    try:
+        for path in paths:
+            client.upload_file(
+                str(path),
+                R2_BUCKET,
+                photo_backup_key(path.name),
+                ExtraArgs={
+                    "ContentType": "image/webp",
+                    "Metadata": {"sha256": file_sha256(path)},
+                },
+            )
+    except Exception as exc:
+        raise BackupUnavailableError("Photo backup could not be completed") from exc
+    return True
 
 
 def db() -> sqlite3.Connection:
@@ -328,6 +415,8 @@ def seed_gallery(connection: sqlite3.Connection) -> None:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    if R2_BACKUP_REQUIRED and not r2_backup_configured():
+        raise RuntimeError("R2 backup is required but its configuration is incomplete")
     init_db()
     ensure_vapid_keys()
     ensure_bot_check_secret()
@@ -1564,6 +1653,11 @@ async def upload_photo(
     photo_id = str(uuid.uuid4())
     filename = f"{photo_id}.webp"
     destination = UPLOAD_DIR / filename
+    generated_paths = (
+        destination,
+        UPLOAD_DIR / placeholder_filename(filename),
+        UPLOAD_DIR / thumbnail_filename(filename),
+    )
     try:
         from io import BytesIO
 
@@ -1574,17 +1668,21 @@ async def upload_photo(
             image.thumbnail((2200, 2200), Image.Resampling.LANCZOS)
             width, height = image.size
             image.save(destination, "WEBP", quality=88, method=6)
-            create_photo_placeholder(
-                image, UPLOAD_DIR / placeholder_filename(filename)
-            )
-            create_photo_thumbnail(
-                image, UPLOAD_DIR / thumbnail_filename(filename)
-            )
+            create_photo_placeholder(image, generated_paths[1])
+            create_photo_thumbnail(image, generated_paths[2])
     except (UnidentifiedImageError, OSError):
-        destination.unlink(missing_ok=True)
-        (UPLOAD_DIR / placeholder_filename(filename)).unlink(missing_ok=True)
-        (UPLOAD_DIR / thumbnail_filename(filename)).unlink(missing_ok=True)
+        for generated_path in generated_paths:
+            generated_path.unlink(missing_ok=True)
         raise HTTPException(status_code=415, detail="That image could not be read")
+    try:
+        await asyncio.to_thread(backup_photo_files, generated_paths)
+    except BackupUnavailableError:
+        for generated_path in generated_paths:
+            generated_path.unlink(missing_ok=True)
+        raise HTTPException(
+            status_code=503,
+            detail="The image backup is temporarily unavailable. Please try again.",
+        )
     timestamp = now_iso()
     with db() as connection:
         first_order = connection.execute(
@@ -1668,6 +1766,7 @@ def health() -> dict:
         "ai": "openai" if OPENAI_API_KEY else "local-fallback",
         "model": OPENAI_MODEL if OPENAI_API_KEY else None,
         "push": bool(ensure_vapid_keys()),
+        "backups": "r2" if r2_backup_configured() else "disabled",
     }
 
 

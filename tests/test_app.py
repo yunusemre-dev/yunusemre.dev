@@ -17,6 +17,7 @@ os.environ.pop("OPENAI_API_KEY", None)
 
 from fastapi.testclient import TestClient
 
+import app as app_module
 from app import (
     UPLOAD_DIR,
     app,
@@ -424,6 +425,90 @@ def test_photo_upload_generates_tiny_blurred_placeholder():
         assert client.delete(f"/api/admin/photos/{photo['id']}").status_code == 200
         assert not placeholder.exists()
         assert not thumbnail.exists()
+
+
+def test_photo_upload_is_mirrored_before_it_is_published(monkeypatch):
+    from io import BytesIO
+
+    from PIL import Image
+
+    class FakeR2Client:
+        def __init__(self):
+            self.uploads = []
+
+        def upload_file(self, filename, bucket, key, ExtraArgs):
+            self.uploads.append(
+                {
+                    "filename": filename,
+                    "bucket": bucket,
+                    "key": key,
+                    "extra": ExtraArgs,
+                }
+            )
+
+    source = BytesIO()
+    Image.new("RGB", (640, 480), (80, 120, 160)).save(source, "JPEG")
+    fake_client = FakeR2Client()
+    monkeypatch.setattr(app_module, "_r2_client_cache", fake_client)
+    monkeypatch.setattr(app_module, "R2_BUCKET", "portfolio-test-backups")
+    monkeypatch.setattr(app_module, "R2_BACKUP_PREFIX", "portfolio")
+
+    with TestClient(app) as client:
+        assert client.post(
+            "/api/admin/login", json={"password": "correct-horse-battery-staple"}
+        ).status_code == 200
+        uploaded = client.post(
+            "/api/admin/photos",
+            files={"file": ("mirrored.jpg", source.getvalue(), "image/jpeg")},
+            data={"caption": "Mirrored first"},
+        )
+        assert uploaded.status_code == 200
+        photo = uploaded.json()["photo"]
+
+        assert len(fake_client.uploads) == 3
+        assert {upload["bucket"] for upload in fake_client.uploads} == {
+            "portfolio-test-backups"
+        }
+        assert {Path(upload["key"]).name for upload in fake_client.uploads} == {
+            Path(photo["url"]).name,
+            Path(photo["placeholder_url"]).name,
+            Path(photo["thumbnail_url"]).name,
+        }
+        assert all(
+            upload["extra"]["ContentType"] == "image/webp"
+            and len(upload["extra"]["Metadata"]["sha256"]) == 64
+            for upload in fake_client.uploads
+        )
+
+        assert client.delete(f"/api/admin/photos/{photo['id']}").status_code == 200
+
+
+def test_photo_upload_is_rejected_when_required_backup_fails(monkeypatch):
+    from io import BytesIO
+
+    from PIL import Image
+
+    class FailingR2Client:
+        def upload_file(self, *args, **kwargs):
+            raise OSError("R2 unavailable")
+
+    source = BytesIO()
+    Image.new("RGB", (640, 480), (120, 80, 160)).save(source, "JPEG")
+    monkeypatch.setattr(app_module, "_r2_client_cache", FailingR2Client())
+    files_before = {path.name for path in UPLOAD_DIR.iterdir()}
+
+    with TestClient(app) as client:
+        assert client.post(
+            "/api/admin/login", json={"password": "correct-horse-battery-staple"}
+        ).status_code == 200
+        uploaded = client.post(
+            "/api/admin/photos",
+            files={"file": ("not-backed-up.jpg", source.getvalue(), "image/jpeg")},
+        )
+
+    assert uploaded.status_code == 503
+    assert uploaded.json()["detail"].startswith("The image backup")
+    assert {path.name for path in UPLOAD_DIR.iterdir()} == files_before
 
 
 def test_gallery_likes_and_manual_ordering():
