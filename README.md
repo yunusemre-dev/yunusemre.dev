@@ -38,7 +38,7 @@ In production, `DATA_DIR` is `/home/boxd/portfolio-data`, outside the deployable
 
 The app runs as `yunus-portfolio.service` on Boxd. Cloudflare Tunnel terminates the custom-domain connection and forwards `yunusemre.dev` and `www.yunusemre.dev` to Uvicorn on port `8000`; its non-secret ingress configuration lives in `deploy/cloudflared.yml`.
 
-The SQLite database is continuously replicated to the same private R2 bucket by Litestream. Remote retention is intentionally disabled in Litestream: its credentials do not need to delete objects and old restore points remain available. Secrets belong in the root-owned `/etc/yunus-portfolio-backup.env`, never in the repository.
+The SQLite database is continuously replicated to the same private R2 bucket by Litestream. Changes are batched into 30-second sync windows to keep R2 write operations comfortably within its free tier. Litestream creates a daily snapshot and retains 30 days of database history so its storage usage stays bounded. Gallery uploads are retained separately and are not affected by the database retention window. Secrets belong in the root-owned `/etc/yunus-portfolio-backup.env`, never in the repository.
 
 ### Backup checks
 

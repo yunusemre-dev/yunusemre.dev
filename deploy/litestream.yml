@@ -1,7 +1,8 @@
-retention:
-  enabled: false
+sync-interval: 30s
 
-sync-interval: 1s
+snapshot:
+  interval: 24h
+  retention: 720h
 
 dbs:
   - path: /home/boxd/portfolio-data/portfolio.db
