@@ -1812,7 +1812,7 @@ body.is-chat-route .chat-shell {
   gap: 6px;
   padding: 9px;
 }
-.photo-manager-grid input {
+.photo-manager-grid .photo-caption-input {
   width: 100%;
   height: 32px;
   padding: 0 9px;
@@ -1835,17 +1835,36 @@ body.is-chat-route .chat-shell {
 .photo-manager-likes {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   margin-right: auto;
   color: #a44955;
-  font-size: 8px;
-  font-weight: 700;
 }
 .photo-manager-likes svg {
   width: 12px;
   height: 12px;
   fill: currentColor;
   stroke-width: 1.5;
+}
+.photo-manager-likes input {
+  width: 46px;
+  height: 28px;
+  padding: 0 5px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  outline: 0;
+  color: #873d47;
+  background: #f7ecec;
+  font-size: 8px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease;
+}
+.photo-manager-likes input:hover,
+.photo-manager-likes input:focus {
+  border-color: #debfc3;
+  background: white;
 }
 .photo-manager-actions button {
   padding: 7px 9px;

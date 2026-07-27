@@ -182,7 +182,8 @@ def init_db() -> None:
                 width INTEGER NOT NULL,
                 height INTEGER NOT NULL,
                 created_at TEXT NOT NULL,
-                sort_order INTEGER NOT NULL DEFAULT 0
+                sort_order INTEGER NOT NULL DEFAULT 0,
+                like_offset INTEGER NOT NULL DEFAULT 0
             );
 
             CREATE TABLE IF NOT EXISTS photo_likes (
@@ -205,6 +206,10 @@ def init_db() -> None:
         if "sort_order" not in photo_columns:
             connection.execute(
                 "ALTER TABLE photos ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0"
+            )
+        if "like_offset" not in photo_columns:
+            connection.execute(
+                "ALTER TABLE photos ADD COLUMN like_offset INTEGER NOT NULL DEFAULT 0"
             )
         seeded = connection.execute(
             "SELECT value FROM meta WHERE key = 'gallery_seeded'"
@@ -429,8 +434,9 @@ class PushUnsubscribeRequest(BaseModel):
     endpoint: str = Field(min_length=16, max_length=4096)
 
 
-class CaptionRequest(BaseModel):
-    caption: str = Field(default="", max_length=120)
+class PhotoUpdateRequest(BaseModel):
+    caption: Optional[str] = Field(default=None, max_length=120)
+    like_count: Optional[int] = Field(default=None, ge=0, le=1_000_000)
 
 
 class PhotoLikeRequest(BaseModel):
@@ -464,7 +470,7 @@ def photo_dict(row: sqlite3.Row) -> dict:
         "height": row["height"],
         "created_at": row["created_at"],
         "sort_order": row["sort_order"],
-        "like_count": int(row["like_count"]) if "like_count" in keys else 0,
+        "like_count": max(0, int(row["like_count"])) if "like_count" in keys else 0,
         "liked": bool(row["liked"]) if "liked" in keys else False,
     }
 
@@ -1175,7 +1181,7 @@ def get_photos(visitor_id: Optional[str] = None) -> dict:
     with db() as connection:
         rows = connection.execute(
             """SELECT p.*,
-                      COUNT(l.visitor_id) AS like_count,
+                      COUNT(l.visitor_id) + p.like_offset AS like_count,
                       MAX(CASE WHEN l.visitor_id = ? THEN 1 ELSE 0 END) AS liked
                FROM photos p
                LEFT JOIN photo_likes l ON l.photo_id = p.id
@@ -1206,9 +1212,14 @@ def set_photo_like(photo_id: str, payload: PhotoLikeRequest) -> dict:
                 (photo_id, payload.visitor_id),
             )
         like_count = connection.execute(
-            "SELECT COUNT(*) FROM photo_likes WHERE photo_id = ?", (photo_id,)
+            """SELECT COUNT(l.visitor_id) + p.like_offset
+               FROM photos p
+               LEFT JOIN photo_likes l ON l.photo_id = p.id
+               WHERE p.id = ?
+               GROUP BY p.id""",
+            (photo_id,),
         ).fetchone()[0]
-    return {"liked": payload.liked, "like_count": like_count}
+    return {"liked": payload.liked, "like_count": max(0, like_count)}
 
 
 @app.post("/api/admin/login")
@@ -1600,17 +1611,40 @@ async def upload_photo(
 @app.patch("/api/admin/photos/{photo_id}")
 def update_photo(
     photo_id: str,
-    payload: CaptionRequest,
+    payload: PhotoUpdateRequest,
     _: None = Depends(require_admin),
 ) -> dict:
+    if payload.caption is None and payload.like_count is None:
+        raise HTTPException(status_code=400, detail="Nothing to update")
     with db() as connection:
-        cursor = connection.execute(
-            "UPDATE photos SET caption = ? WHERE id = ?",
-            (payload.caption.strip(), photo_id),
-        )
-        if not cursor.rowcount:
+        photo = connection.execute(
+            "SELECT id FROM photos WHERE id = ?", (photo_id,)
+        ).fetchone()
+        if not photo:
             raise HTTPException(status_code=404, detail="Photo not found")
-        row = connection.execute("SELECT * FROM photos WHERE id = ?", (photo_id,)).fetchone()
+        if payload.caption is not None:
+            connection.execute(
+                "UPDATE photos SET caption = ? WHERE id = ?",
+                (payload.caption.strip(), photo_id),
+            )
+        if payload.like_count is not None:
+            visitor_likes = connection.execute(
+                "SELECT COUNT(*) FROM photo_likes WHERE photo_id = ?", (photo_id,)
+            ).fetchone()[0]
+            connection.execute(
+                "UPDATE photos SET like_offset = ? WHERE id = ?",
+                (payload.like_count - visitor_likes, photo_id),
+            )
+        row = connection.execute(
+            """SELECT p.*,
+                      COUNT(l.visitor_id) + p.like_offset AS like_count,
+                      0 AS liked
+               FROM photos p
+               LEFT JOIN photo_likes l ON l.photo_id = p.id
+               WHERE p.id = ?
+               GROUP BY p.id""",
+            (photo_id,),
+        ).fetchone()
     return {"photo": photo_dict(row)}
 
 

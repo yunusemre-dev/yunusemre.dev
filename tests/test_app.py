@@ -465,6 +465,34 @@ def test_gallery_likes_and_manual_ordering():
         assert client.post(
             "/api/admin/login", json={"password": "correct-horse-battery-staple"}
         ).status_code == 200
+        updated = client.patch(
+            f"/api/admin/photos/{first_id}",
+            json={"caption": "First, edited", "like_count": 24},
+        )
+        assert updated.status_code == 200
+        assert updated.json()["photo"]["caption"] == "First, edited"
+        assert updated.json()["photo"]["like_count"] == 24
+
+        public_photo = next(
+            photo
+            for photo in client.get(
+                "/api/photos", params={"visitor_id": visitor_id}
+            ).json()["photos"]
+            if photo["id"] == first_id
+        )
+        assert public_photo["liked"] is True
+        assert public_photo["like_count"] == 24
+
+        another_visitor = "another-gallery-visitor"
+        assert client.post(
+            f"/api/photos/{first_id}/like",
+            json={"visitor_id": another_visitor, "liked": True},
+        ).json()["like_count"] == 25
+        assert client.post(
+            f"/api/photos/{first_id}/like",
+            json={"visitor_id": another_visitor, "liked": False},
+        ).json()["like_count"] == 24
+
         reordered_ids = [photo["id"] for photo in reversed(photos)]
         reordered = client.put(
             "/api/admin/photos/order", json={"photo_ids": reordered_ids}
@@ -478,6 +506,6 @@ def test_gallery_likes_and_manual_ordering():
             f"/api/photos/{first_id}/like",
             json={"visitor_id": visitor_id, "liked": False},
         )
-        assert unliked.json() == {"liked": False, "like_count": 0}
+        assert unliked.json() == {"liked": False, "like_count": 23}
         assert client.delete(f"/api/admin/photos/{first_id}").status_code == 200
         assert client.delete(f"/api/admin/photos/{second_id}").status_code == 200

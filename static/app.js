@@ -1645,18 +1645,21 @@ async function renderStudioPhotos() {
       <button type="submit">Add to dump</button>
     </form>
     <div class="photo-manager">
-      <div class="photo-manager-title"><div><h3>On the wall</h3><p>Drag to reorder, or use the arrow buttons.</p></div><span>${photos.length} image${photos.length === 1 ? "" : "s"}</span></div>
+      <div class="photo-manager-title"><div><h3>On the wall</h3><p>Drag to reorder. Edit captions or like counts, then save.</p></div><span>${photos.length} image${photos.length === 1 ? "" : "s"}</span></div>
       <div class="photo-manager-grid">
         ${photos.map((photo, index) => `<article data-photo-id="${photo.id}">
           <div class="photo-manager-preview"><img src="${escapeHtml(photo.thumbnail_url || photo.url)}" alt="" /><button class="photo-drag-handle" type="button" draggable="true" data-drag-handle aria-label="Drag to reorder image">Drag</button></div>
           <div class="photo-manager-editor">
-            <input value="${escapeHtml(photo.caption)}" maxlength="120" aria-label="Photo caption" />
+            <input class="photo-caption-input" value="${escapeHtml(photo.caption)}" maxlength="120" aria-label="Photo caption" />
             <div class="photo-manager-actions">
               <span class="photo-order-label">${String(index + 1).padStart(2, "0")}</span>
               <button type="button" data-move-photo="-1" aria-label="Move image earlier" title="Move earlier">←</button>
               <button type="button" data-move-photo="1" aria-label="Move image later" title="Move later">→</button>
-              <span class="photo-manager-likes" title="Likes">${photo.like_count}${icons.heart}</span>
-              <button type="button" data-save-caption>Save</button>
+              <label class="photo-manager-likes" title="Displayed likes">
+                <input type="number" data-like-count value="${photo.like_count}" min="0" max="1000000" inputmode="numeric" aria-label="Displayed like count" />
+                ${icons.heart}
+              </label>
+              <button type="button" data-save-photo>Save</button>
               <button type="button" class="danger" data-delete-photo>Remove</button>
             </div>
           </div>
@@ -1777,15 +1780,32 @@ async function renderStudioPhotos() {
       });
     });
     card
-      .querySelector("[data-save-caption]")
+      .querySelector("[data-save-photo]")
       .addEventListener("click", async () => {
-        const caption = card.querySelector("input").value;
-        await operatorFetch(`/api/admin/photos/${id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ caption }),
-        });
-        showToast("Caption saved.");
+        const button = card.querySelector("[data-save-photo]");
+        const caption = card.querySelector(".photo-caption-input").value;
+        const likeCountInput = card.querySelector("[data-like-count]");
+        const likeCount = Number(likeCountInput.value);
+        if (!Number.isInteger(likeCount) || likeCount < 0) {
+          showToast("Use a whole number of likes.");
+          likeCountInput.focus();
+          return;
+        }
+        button.disabled = true;
+        try {
+          const response = await operatorFetch(`/api/admin/photos/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ caption, like_count: likeCount }),
+          });
+          const { photo } = await response.json();
+          likeCountInput.value = photo.like_count;
+          showToast("Image details saved.");
+        } catch (error) {
+          showToast(error.message);
+        } finally {
+          button.disabled = false;
+        }
       });
     card
       .querySelector("[data-delete-photo]")
