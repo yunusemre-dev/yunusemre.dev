@@ -12,6 +12,7 @@ const state = {
   conversationId: localStorage.getItem("yunus-conversation"),
   takeover: false,
   lastMessageId: 0,
+  sendingConversationId: null,
   chatGeneration: 0,
   operatorSelected: null,
   operatorTab: "chats",
@@ -460,13 +461,24 @@ function addMessage(message, temporary = false) {
 }
 
 async function pollChat() {
-  if (!state.conversationId || !document.querySelector("#messages")) return;
+  const conversationId = state.conversationId;
+  if (
+    !conversationId ||
+    !document.querySelector("#messages") ||
+    state.sendingConversationId === conversationId
+  )
+    return;
   try {
     const response = await fetch(
-      `/api/conversations/${state.conversationId}/messages?after=${state.lastMessageId}`,
+      `/api/conversations/${conversationId}/messages?after=${state.lastMessageId}`,
     );
     if (!response.ok) return;
     const data = await response.json();
+    if (
+      state.conversationId !== conversationId ||
+      state.sendingConversationId === conversationId
+    )
+      return;
     data.messages.forEach((message) => addMessage(message));
     setChatStatus(data.takeover);
     setOperatorTyping(Boolean(data.takeover && data.operator_typing));
@@ -657,6 +669,8 @@ async function renderChat() {
     input.value = "";
     resizeInput();
     input.disabled = true;
+    state.sendingConversationId = chatConversationId;
+    let streamingElement = null;
     try {
       await stopVisitorTyping();
       const conversation = await ensureConversation(chatGeneration);
@@ -686,7 +700,6 @@ async function renderChat() {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
-      let streamingElement = null;
       while (true) {
         const { value, done } = await reader.read();
         buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
@@ -708,9 +721,24 @@ async function renderChat() {
             scrollChatToMessage(messages, streamingElement);
           }
           if (event.type === "done" && streamingElement) {
+            const duplicate = messages.querySelector(
+              `[data-message-id="${event.message.id}"]`,
+            );
+            if (duplicate && duplicate !== streamingElement) {
+              duplicate.remove();
+              streamingElement.classList.remove(
+                "is-group-start",
+                "is-group-middle",
+                "is-group-end",
+                "is-continuation",
+              );
+              streamingElement.classList.add("is-group-solo");
+            }
             streamingElement.removeAttribute("data-temporary");
             streamingElement.dataset.messageId = event.message.id;
             streamingElement.classList.remove("is-streaming");
+            streamingElement.querySelector("p").textContent =
+              event.message.content;
             state.lastMessageId = Math.max(
               state.lastMessageId,
               Number(event.message.id),
@@ -727,9 +755,12 @@ async function renderChat() {
     } finally {
       activeRequest = null;
       sending = false;
+      if (state.sendingConversationId === chatConversationId)
+        state.sendingConversationId = null;
       input.disabled = false;
       syncSubmitControls();
       input.focus();
+      pollChat();
     }
   }
 

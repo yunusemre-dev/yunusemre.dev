@@ -59,6 +59,13 @@ def bot_checked_message(client, conversation_id, content, after=0):
     raise AssertionError("Could not solve the test bot challenge")
 
 
+def test_profile_context_does_not_describe_yunus_as_curious():
+    profile = (
+        Path(__file__).resolve().parents[1] / "data" / "about.md"
+    ).read_text(encoding="utf-8")
+    assert "curious" not in profile.lower()
+
+
 def test_existing_message_schema_migrates_without_losing_chat(tmp_path):
     connection = sqlite3.connect(tmp_path / "old.db")
     connection.row_factory = sqlite3.Row
@@ -118,7 +125,12 @@ def test_chat_fallback_and_human_takeover():
         events = decode_lines(reply)
         assert events[0]["type"] == "message"
         assert events[-1]["type"] == "done"
+        assert sum(event["type"] == "done" for event in events) == 1
         assert "TypeScript" in events[-1]["message"]["content"]
+        stored_messages = client.get(
+            f"/api/conversations/{conversation_id}/messages"
+        ).json()["messages"]
+        assert sum(message["role"] == "ai" for message in stored_messages) == 1
         replay = client.post(
             f"/api/conversations/{conversation_id}/messages",
             json=first_payload,

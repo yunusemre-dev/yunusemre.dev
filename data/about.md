@@ -6,13 +6,13 @@
 - “Kepenek” is pronounced almost as written: keh-peh-NEK.
 - Based in İzmir, Türkiye.
 - Speaks Turkish natively and English fluently.
-- Describes himself as a curious engineer who loves building things, traveling, and collecting new experiences.
+- Describes himself as an engineer who loves building things, traveling, and collecting new experiences.
 - Likes being a “jack of all trades, master of some”: broad enough to work across a product, but genuinely strong in several areas.
 - He is quietly proud of feeling successful at a young age.
 
 ## Origin story and education
 
-- Video games first made Yunus curious about computers.
+- Video games first sparked Yunus’s interest in computers.
 - He was self-taught and had decided on software engineering as a career by middle school.
 - He built and ran Minecraft servers that real communities played on and that earned money.
 - His first memorable completed program was a sonar-style radar built with Arduino.
