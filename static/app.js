@@ -802,7 +802,7 @@ function renderPast() {
     <main class="past-page shell page-enter" aria-labelledby="past-title">
       <section class="past-overview">
         <div class="past-about">
-          <p>I’m a curious full-stack engineer based in İzmir. Video games pulled me into computers; by middle school I was teaching myself to code, running Minecraft servers people actually played on, and experimenting with Arduino.</p>
+          <p>I’m a full-stack engineer based in İzmir, Türkiye. Video games pulled me into computers; by middle school I was teaching myself to code, running Minecraft servers people actually played on, and experimenting with Arduino.</p>
           <p>I try to be a jack of all trades, master of some. I work across frontend, backend, AI agents, and sometimes design. Away from work, it’s travel, cycling, tennis, and gaming.</p>
         </div>
         <div class="social-links">
