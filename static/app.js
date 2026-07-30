@@ -1664,6 +1664,64 @@ async function refreshOperatorInbox() {
   bindConversationButtons(list);
 }
 
+async function loadUploadImage(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const image = new Image();
+    image.decoding = "async";
+    image.src = url;
+    await image.decode();
+    return image;
+  } catch (error) {
+    URL.revokeObjectURL(url);
+    throw error;
+  }
+}
+
+function renderUploadVariant(image, maxEdge, quality) {
+  const scale = Math.min(1, maxEdge / Math.max(image.naturalWidth, image.naturalHeight));
+  const width = Math.max(1, Math.round(image.naturalWidth * scale));
+  const height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d", { alpha: false });
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
+  context.drawImage(image, 0, 0, width, height);
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob || blob.type !== "image/webp") {
+          reject(new Error("This browser couldn’t optimize the image."));
+          return;
+        }
+        resolve({ blob, width, height });
+      },
+      "image/webp",
+      quality,
+    );
+  });
+}
+
+async function preparePhotoUpload(file) {
+  if (file.size > 12 * 1024 * 1024) {
+    throw new Error("Images must be under 12 MB.");
+  }
+  const image = await loadUploadImage(file);
+  const sourceUrl = image.src;
+  try {
+    const [full, thumbnail, placeholder] = await Promise.all([
+      renderUploadVariant(image, 2200, 0.88),
+      renderUploadVariant(image, 720, 0.82),
+      renderUploadVariant(image, 32, 0.36),
+    ]);
+    return { full, thumbnail, placeholder };
+  } finally {
+    URL.revokeObjectURL(sourceUrl);
+  }
+}
+
 async function renderStudioPhotos() {
   const body = document.querySelector("#studio-body");
   const response = await operatorFetch("/api/admin/photos");
@@ -1710,7 +1768,29 @@ async function renderStudioPhotos() {
     button.disabled = true;
     button.textContent = "Adding…";
     try {
-      const formData = new FormData(form);
+      const source = fileInput.files[0];
+      if (!source) throw new Error("Choose an image first.");
+      const prepared = await preparePhotoUpload(source);
+      const basename = source.name.replace(/\.[^.]+$/, "") || "photo";
+      const formData = new FormData();
+      formData.append(
+        "file",
+        prepared.full.blob,
+        `${basename}.webp`,
+      );
+      formData.append(
+        "thumbnail",
+        prepared.thumbnail.blob,
+        `${basename}.thumb.webp`,
+      );
+      formData.append(
+        "placeholder",
+        prepared.placeholder.blob,
+        `${basename}.placeholder.webp`,
+      );
+      formData.append("width", String(prepared.full.width));
+      formData.append("height", String(prepared.full.height));
+      formData.append("caption", String(new FormData(form).get("caption") || ""));
       await operatorFetch("/api/admin/photos", {
         method: "POST",
         body: formData,

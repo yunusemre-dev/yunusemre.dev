@@ -3,11 +3,11 @@
 .DS_Store
 __pycache__/
 .pytest_cache/
+.wrangler/
+node_modules/
 data/*.db
 data/*.db-*
 data/bot_check_secret
 data/*.pem
-data/uploads/*
-!data/uploads/.gitkeep
 output/
 tmp/

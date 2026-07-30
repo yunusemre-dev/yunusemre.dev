@@ -4,76 +4,70 @@ A deliberately small personal site: chat, past, and a visual dump.
 
 ## Stack
 
-- FastAPI serves the API and static single-page interface.
-- SQLite keeps conversations, takeover state, messages, and photo metadata.
-- OpenAI's Responses API streams `gpt-5.6-luna` replies when `OPENAI_API_KEY` is present.
-- A grounded local responder keeps the site useful when an API key is not configured.
-- The private `/studio` route lets Yunus take over a conversation, reply as himself, and manage the photo grid.
+- A single Cloudflare Worker serves the API and the static vanilla HTML/CSS/JavaScript app.
+- D1 stores conversations, messages, operator presence, photo metadata, likes, and push subscriptions.
+- R2 stores the original, thumbnail, and blurred-placeholder WebP for every dump image.
+- OpenAI's Responses API streams `gpt-5.6-luna` replies.
+- The private `/studio` route lets Yunus take over a chat, reply live, manage notifications, and edit the dump.
+
+There is no VM, tunnel, application server, or local production filesystem.
 
 ## Local development
 
 ```bash
-python3 -m venv .venv
-.venv/bin/pip install -r requirements-dev.txt
-COOKIE_SECURE=0 ADMIN_PASSWORD=dev-password .venv/bin/uvicorn app:app --reload --port 8000
+npm install
+npx wrangler login
+npx wrangler d1 migrations apply yunusemre-dev --local
+npm run dev
 ```
 
-Open `http://localhost:8000`. The operator studio is at `http://localhost:8000/studio`.
+Open the URL printed by Wrangler. The operator studio is at `/studio`.
 
 ## Configuration
 
-Copy `.env.example` into your environment manager. `ADMIN_PASSWORD` should always be replaced in production. The OpenAI key stays server-side and is optional; add it to enable the full generative clone.
+Non-secret bindings and variables live in `wrangler.jsonc`. Production needs these encrypted Worker secrets:
 
-Profile grounding lives in `data/about.md`. Images are managed through the studio and stored under the persistent data directory. Conversation state, generated bot-check secrets, and push-notification keys live there too and are intentionally excluded from Git.
+- `ADMIN_PASSWORD`
+- `OPENAI_API_KEY`
+- `BOT_CHECK_SECRET`
+- `VAPID_PUBLIC_KEY`
+- `VAPID_PRIVATE_KEY`
 
-In production, `DATA_DIR` is `/home/boxd/portfolio-data`, outside the deployable application directory. Every generated version of a studio upload is written to a private Cloudflare R2 bucket before its database record is committed. Uploads are immutable in R2 even after they are removed from the live gallery.
-
-## Test
-
-```bash
-.venv/bin/pytest -q
-```
-
-## Production
-
-The app runs as `yunus-portfolio.service` on Boxd. Cloudflare Tunnel terminates the custom-domain connection and forwards `yunusemre.dev` and `www.yunusemre.dev` to Uvicorn on port `8000`; its non-secret ingress configuration lives in `deploy/cloudflared.yml`.
-
-The SQLite database is continuously replicated to the same private R2 bucket by Litestream. Changes are batched into 30-second sync windows to keep R2 write operations comfortably within its free tier. Litestream creates a daily snapshot and retains 30 days of database history so its storage usage stays bounded. Gallery uploads are retained separately and are not affected by the database retention window. Secrets belong in the root-owned `/etc/yunus-portfolio-backup.env`, never in the repository.
-
-### Backup checks
-
-Run these commands from a root shell (`sudo -i`), because the R2 credentials are
-intentionally readable only by root.
-
-Sync all existing gallery assets after first configuring R2:
+Set one with:
 
 ```bash
-set -a
-. /etc/yunus-portfolio-backup.env
-set +a
-cd /home/boxd/portfolio
-.venv/bin/python deploy/sync_upload_backups.py
+npx wrangler secret put SECRET_NAME
 ```
 
-Verify that every active photo has its original, thumbnail, and blurred placeholder both locally and in R2:
+The AI profile and behavior context live in `data/about.md`.
+
+## Checks and deployment
 
 ```bash
-set -a
-. /etc/yunus-portfolio-backup.env
-set +a
-cd /home/boxd/portfolio
-.venv/bin/python deploy/verify_upload_backups.py
+npm run check
+npm run deploy
 ```
 
-Test a database restore without touching production:
+Deployment uploads the Worker and static assets, applies the custom-domain triggers, and verifies the live health endpoint, routes, D1 photo records, and every active R2 image variant.
+
+To apply a new D1 migration:
 
 ```bash
-set -a
-. /etc/yunus-portfolio-backup.env
-set +a
-restore_path="$(mktemp /tmp/portfolio-restore.XXXXXX.db)"
-litestream restore -config /etc/litestream.yml -o "$restore_path" \
-  /home/boxd/portfolio-data/portfolio.db
-python3 -c 'import sqlite3,sys; print(sqlite3.connect(sys.argv[1]).execute("PRAGMA integrity_check").fetchone()[0])' "$restore_path"
-rm "$restore_path"
+npx wrangler d1 migrations apply yunusemre-dev --remote
 ```
+
+## Data durability
+
+- D1 is the source of truth for all mutable records and has automatic seven-day point-in-time recovery on the Workers Free plan.
+- R2 is the source of truth for gallery files.
+- Studio uploads are resized in the browser and written directly to R2 as three immutable WebP variants.
+- Removing a photo from the live dump deletes its D1 metadata but intentionally retains the R2 objects for recovery.
+- The migrated Litestream generations remain in R2 under `portfolio/sqlite/`; they are historical recovery data, not part of the live runtime.
+
+Export a current D1 snapshot before a risky data change:
+
+```bash
+npx wrangler d1 export yunusemre-dev --remote --output ./yunusemre-dev-backup.sql
+```
+
+The Worker and custom domains are configured declaratively in `wrangler.jsonc`.

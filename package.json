@@ -1,0 +1,22 @@
+{
+  "name": "yunusemre-dev",
+  "version": "4.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit && node --check static/app.js && node --check scripts/smoke-chat.mjs && node --check scripts/verify-production.mjs",
+    "dev": "wrangler dev",
+    "deploy:code": "wrangler deploy",
+    "deploy": "npm run deploy:code && wrangler triggers deploy && npm run verify:production",
+    "verify:production": "node scripts/verify-production.mjs",
+    "types": "wrangler types"
+  },
+  "dependencies": {
+    "@block65/webcrypto-web-push": "1.0.2"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20260730.1",
+    "typescript": "5.9.2",
+    "wrangler": "4.115.0"
+  }
+}
